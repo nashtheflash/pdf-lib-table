@@ -1,0 +1,24 @@
+{
+  "name": "pdf-lib-table",
+  "version": "1.0.0",
+  "description": "table creation add on for pdf-lib",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nashtheflash/pdf-lib-table.git"
+  },
+  "keywords": [
+    "pdf",
+    "pdf-lib",
+    "table"
+  ],
+  "author": "Nash Bostwick",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nashtheflash/pdf-lib-table/issues"
+  },
+  "homepage": "https://github.com/nashtheflash/pdf-lib-table#readme"
+}
