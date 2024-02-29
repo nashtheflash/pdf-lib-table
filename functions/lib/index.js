@@ -1,0 +1,1 @@
+export const getTextWidth = (font, size, text) => font.widthOfTextAtSize(text, size);

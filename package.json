@@ -20,5 +20,6 @@
   "bugs": {
     "url": "https://github.com/nashtheflash/pdf-lib-table/issues"
   },
-  "homepage": "https://github.com/nashtheflash/pdf-lib-table#readme"
+  "homepage": "https://github.com/nashtheflash/pdf-lib-table#readme",
+  "type": "module"
 }
