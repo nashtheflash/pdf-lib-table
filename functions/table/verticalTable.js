@@ -1,5 +1,6 @@
 import { drawTableBoarder } from "./elements";
 import { drawVerticalHeader } from "../header";
+import { drawRows } from "../row";
 
 export const drawVerticalTable = (tableProps) => {
     const { tableBoarder } = tableProps;
@@ -11,5 +12,5 @@ export const drawVerticalTable = (tableProps) => {
     drawVerticalHeader(tableProps);
 
     //Rows
-    
+    drawRows(tableProps);
 };

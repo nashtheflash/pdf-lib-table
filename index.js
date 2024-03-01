@@ -5,6 +5,7 @@
 import { rgb } from 'pdf-lib';
 import { getLongestColumnItem, getColumnManualWidths, getHeaderItemLengths, getColumnWidths, getColumnIds, getNumberOfRows, getNumberOfSubHeadings } from './functions/dataProcessing';
 import { draw2WayTable, drawHorizontalTable, drawVerticalTable } from './functions/table';
+import { getHeaderRows } from './functions/header/headerFuncitons';
 
 const black = rgb(.03, .03, .03);
 const white = rgb(.03, .03, .03);
@@ -60,10 +61,10 @@ export async function drawTable({
     headerWrapText=false,
     //CELL SETTINGS
     cellFont, // timesnewroman || any pdflib standard font
-    cellBackgroundColor='#ffffff', //#ffffff || Hex Color Value
+    cellBackgroundColor=grey, //#ffffff || Hex Color Value
     cellTextSize=10, //cell text size
-    cellTextColor='black', //#000000 || Hex Color Value
-    cellHeight=12,
+    cellTextColor=black, //#000000 || Hex Color Value
+    cellHeight=10,
 
 } = {}) {
 
@@ -80,12 +81,11 @@ export async function drawTable({
     const pageWidth = page.getWidth();
     const numberOfRows = getNumberOfRows(data);
     const numberOfSubHeadings = getNumberOfSubHeadings(data);
-    const availableTableWidth = !maxTableWidth ? (pageWidth - startingX) : Math.min(pageWidth, maxTableWidth);
-    const availableTableHeight = headerHeight + (numberOfRows * cellHeight) + (numberOfSubHeadings * subHeadingHeight);
     const columnIds = getColumnIds(columns); 
     const headerLengths = getHeaderItemLengths(columns, headerFont, headerTextSize);
     const longestRowItem = getLongestColumnItem(data, cellFont, cellTextSize);
     const manualColumnWidths = getColumnManualWidths(columns);
+    const availableTableWidth = !maxTableWidth ? (pageWidth - startingX) : Math.min(pageWidth, maxTableWidth);
     const columnWidths = getColumnWidths({
         page,
         columnIds,
@@ -99,8 +99,14 @@ export async function drawTable({
         longestRowItem,
         availableTableWidth
     });
-
-
+    
+    //Heeder Measurments
+    const headerTextRows = getHeaderRows({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
+    const headerFullTextHeight = headerTextRows * headerTextSize;
+    const totalHeaderHeight = Math.max(headerHeight, headerFullTextHeight);
+    const rowStartingY =  totalHeaderHeight + cellHeight;
+    const availableTableHeight = totalHeaderHeight + (numberOfRows * cellHeight) + (numberOfSubHeadings * subHeadingHeight);
+    
     // build table
     const tableProps = {
         data,
@@ -162,16 +168,18 @@ export async function drawTable({
         numberOfSubHeadings,
         availableTableWidth,
         availableTableHeight,
-        columnIds,
         headerLengths,
         longestRowItem,
         manualColumnWidths,
         columnWidths,
-    }
+        headerTextRows,
+        headerFullTextHeight,
+        rowStartingY
+    };
 
     if(tableType === 'vertical') drawVerticalTable(tableProps);
     // if(tableType === 'horizontal') drawHorizontalTable(tableProps);
     // if(tableType === '2way') draw2WayTable(tableProps);
 
-    return tableType
+    return tableType;
 };

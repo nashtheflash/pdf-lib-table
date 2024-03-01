@@ -21,11 +21,10 @@ export const drawVerticalHeader = ({
     headerDividedYThickness,
     availableTableWidth,
     headerWrapText,
+    headerTextRows,
+    headerFullTextHeight
 }) => {
-    //finds out how many lines the header will be
-    const headerTextRows = getHeaderRows({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
     const headerTextRowsByColumn = getHeaderTextRowsByColumn({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
-    const headerFullTextHeight = headerTextRows * headerTextSize;
     const longestHeaderRows = Math.max(...Object.values(headerTextRowsByColumn));
     
     //Header Background Color
@@ -90,40 +89,3 @@ export const drawVerticalHeader = ({
         vertialCursor = 0;
     });
 };
-
-//TODO: CONTINUE BUILDING HEADING
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// export const drawHorizontalHeader = (columns) => {
-
-// }
-
-// export const draw2WayHeader = (columns) => {
-
-// }
