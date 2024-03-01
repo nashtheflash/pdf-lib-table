@@ -1,8 +1,9 @@
-import { getTextWidth } from "../lib";
+import { getTextWidth, getWrapedText } from "../lib";
+import { getHeaderRows, getHeaderTextRowsByColumn } from "./headerFuncitons";
 
 export const drawVerticalHeader = ({ 
     page, 
-    columns, 
+    columns,
     columnWidths, 
     startingX, 
     startingY, 
@@ -13,49 +14,80 @@ export const drawVerticalHeader = ({
     headerBackgroundColor,
     headerTextAlignment,
     headerDividedY,
-    availableTableHeight,
+    headerDividedX,
+    headerDividedXColor,
+    headerDividedYColor,
+    headerDividedXThickness,
+    headerDividedYThickness,
     availableTableWidth,
+    headerWrapText,
 }) => {
+    //finds out how many lines the header will be
+    const headerTextRows = getHeaderRows({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
+    const headerTextRowsByColumn = getHeaderTextRowsByColumn({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
+    const headerFullTextHeight = headerTextRows * headerTextSize;
+    const longestHeaderRows = Math.max(...Object.values(headerTextRowsByColumn));
     
     //Header Background Color
     page.drawRectangle({
         x: startingX,
-        y: startingY,
+        y: startingY - Math.max(headerHeight, headerFullTextHeight),
         width: availableTableWidth,
-        height: headerHeight,
+        height: Math.max(headerHeight, headerFullTextHeight),
         borderWidth: 0,
         color: headerBackgroundColor,
         opacity: 0.25
     })
 
-    //Wording
-    let cursor = 0; //left Alignment 
-    columns.forEach((column) => {
-        //adjust alighnment
-        let alignment = 0;
-        if(headerTextAlignment === 'right') alignment = columnWidths[column.columnId] - getTextWidth(headerFont, headerTextSize, column.header);
-        if(headerTextAlignment === 'center') alignment = (columnWidths[column.columnId] - getTextWidth(headerFont, headerTextSize, column.header)) / 2;
-        
-        //Header Text
-        page.drawText(column.header, {
-            x: startingX + cursor + alignment,
-            y: startingY,
-            size: headerTextSize,
-            font: headerFont,
-            color: headerTextColor
+    //Header X Divider
+    if(headerDividedX) {
+        page.drawLine({
+            start: { x: startingX, y: startingY - Math.max(headerHeight, headerFullTextHeight) },
+            end: { x: startingX + availableTableWidth, y: startingY - Math.max(headerHeight, headerFullTextHeight) },
+            thickness: headerDividedXThickness,
+            color: headerDividedXColor,
+            opacity: 1,
         });
-        cursor += columnWidths[column.columnId];
+    }
+
+    //Wording
+    let horizontalCursor = 0; //horizontal Alignment I think about a cusor moving across the screen printing
+    let vertialCursor = 0; //vertial Alignment I think about a cusor moving across the screen printing
+    columns.forEach((column) => {
+        //array of lines that need to be printed
+        const headerText = getWrapedText(headerFont, headerTextSize, columnWidths[column.columnId], column.header);
+        
+        vertialCursor = (longestHeaderRows - headerText.length) * headerTextSize;
+        headerText.forEach((lineOfText) => {
+            let alignment = 0;
+            if(headerTextAlignment === 'right') alignment = columnWidths[column.columnId] - getTextWidth(headerFont, headerTextSize, lineOfText);
+            if(headerTextAlignment === 'center') alignment = (columnWidths[column.columnId] - getTextWidth(headerFont, headerTextSize, lineOfText)) / 2;
+            //Header Text
+            page.drawText(lineOfText, {
+                x: startingX + horizontalCursor + alignment,
+                y: startingY - vertialCursor - headerTextSize,
+                size: headerTextSize,
+                font: headerFont,
+                color: headerTextColor,
+                lineHeight: headerTextSize
+            });
+            vertialCursor += headerTextSize;
+        })
+
+        horizontalCursor += columnWidths[column.columnId];
         
         //Header Divider must be turned on and it does not print for the last column
         if(headerDividedY && columns[columns.length - 1] != column) {
             page.drawLine({
-                start: { x: startingX + cursor, y: startingY },
-                end: { x: startingX + cursor, y: startingY + headerHeight },
-                thickness: 1,
-                // color: rgb(0,1,0),
+                start: { x: startingX + horizontalCursor, y: startingY },
+                end: { x: startingX + horizontalCursor, y: startingY - Math.max(headerHeight, headerFullTextHeight) },
+                thickness: headerDividedYThickness,
+                color: headerDividedYColor,
                 opacity: 0.75,
             });
-        }
+        };
+
+        vertialCursor = 0;
     });
 };
 

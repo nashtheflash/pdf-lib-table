@@ -10,7 +10,7 @@ export const drawTableBoarder = ({
 }) => {
     page.drawRectangle({
         x: startingX,
-        y: startingY - availableTableHeight + headerHeight,
+        y: startingY - availableTableHeight,
         width: availableTableWidth,
         height: availableTableHeight,
         borderWidth: tableBoarderThickness,

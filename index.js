@@ -2,8 +2,14 @@
  * 
  * 
  */
+import { rgb } from 'pdf-lib';
 import { getLongestColumnItem, getColumnManualWidths, getHeaderItemLengths, getColumnWidths, getColumnIds, getNumberOfRows, getNumberOfSubHeadings } from './functions/dataProcessing';
 import { draw2WayTable, drawHorizontalTable, drawVerticalTable } from './functions/table';
+
+const black = rgb(.03, .03, .03);
+const white = rgb(.03, .03, .03);
+const blue = rgb(.21, .24, .85);
+const grey = rgb(.03, .03, .03);
 
 
 export async function drawTable({
@@ -26,7 +32,7 @@ export async function drawTable({
     alternateCellColor='#c9c2c1', //#c9c2c1 || Hex Color Value
     tableBoarder=true,
     tableBoarderThickness=false,
-    tableBoarderColor=false,
+    tableBoarderColor=black,
     rounded=false, //sets if the table corners are rounded
     customContinuesOnNextPage=false, //can pass a function for what to draw
     smPageFiller=false, //can pass a function for what to draw
@@ -36,15 +42,17 @@ export async function drawTable({
     subHeadingBackgroundColor='#8a8584', //#8a8584 || Hex Color Value
     subHeadingHeight=12, //table header text size
     subHeadingFont='timesnewroman', // timesnewroman || any pdflib standard font
-    subHeadingTextColor='black', //#000000 || Hex Color Value
+    subHeadingTextColor=black, //#000000 || Hex Color Value
     subHeadingTextSize='10', //table header text size
     //HEADER SETTINGS
     headerFont, // timesnewroman || any pdflib standard font
     headerDividedX=true,
     headerDividedY=true,
-    headerDividedXColor='#000000', //#000000 || Hex Color Value
-    headerDividedYColor='#000000', //#000000 || Hex Color Value
-    headerBackgroundColor=false, //#8a8584 || Hex Color Value
+    headerDividedXColor=black, //#000000 || Hex Color Value
+    headerDividedYColor=black, //#000000 || Hex Color Value
+    headerDividedXThickness=1,
+    headerDividedYThickness=1,
+    headerBackgroundColor=blue, //#8a8584 || Hex Color Value
     headerHeight=10, //height of the table header
     headerTextColor=false, //#000000 || Hex Color Value
     headerTextSize=10, //table header text size
@@ -99,6 +107,7 @@ export async function drawTable({
         page,
         pdfDoc,
         columns,
+        columnIds,
         //TABLE SETTINGS
         startingX,
         startingY,
@@ -132,6 +141,8 @@ export async function drawTable({
         headerDividedY,
         headerDividedXColor,
         headerDividedYColor,
+        headerDividedXThickness,
+        headerDividedYThickness,
         headerBackgroundColor,
         headerHeight,
         headerTextColor,
