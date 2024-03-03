@@ -36,7 +36,7 @@ export const drawVerticalHeader = ({
         borderWidth: 0,
         color: headerBackgroundColor,
         opacity: 0.25
-    })
+    });
 
     //Header X Divider
     if(headerDividedX) {
@@ -47,7 +47,7 @@ export const drawVerticalHeader = ({
             color: headerDividedXColor,
             opacity: 1,
         });
-    }
+    };
 
     //Wording
     let horizontalCursor = 0; //horizontal Alignment I think about a cusor moving across the screen printing

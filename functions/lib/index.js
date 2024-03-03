@@ -7,7 +7,7 @@ export const getWrapedText = (font, fontSize, textAreaSize, text) => {
     let currentLineWidth = 0
     
     for (let loop = 0; loop < words.length; loop++) {
-        const currentWordLength = getTextWidth(font, fontSize, (words[loop] + ' '));
+        const currentWordLength = words.length > 1 ? getTextWidth(font, fontSize, (words[loop] + ' ')) : getTextWidth(font, fontSize, words[loop]);
 
         if (currentWordLength + currentLineWidth > textAreaSize) {
             lineBreaks.push(loop - 1);

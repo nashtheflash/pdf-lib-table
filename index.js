@@ -6,11 +6,18 @@ import { rgb } from 'pdf-lib';
 import { getLongestColumnItem, getColumnManualWidths, getHeaderItemLengths, getColumnWidths, getColumnIds, getNumberOfRows, getNumberOfSubHeadings } from './functions/dataProcessing';
 import { draw2WayTable, drawHorizontalTable, drawVerticalTable } from './functions/table';
 import { getHeaderRows } from './functions/header/headerFuncitons';
+import { getTotalRowHeight } from './functions/row/rowFunctions';
 
-const black = rgb(.03, .03, .03);
-const white = rgb(.03, .03, .03);
+//default colors
+const black = rgb(0, 0, 0);
+const white = rgb(1, 1, 1);
 const blue = rgb(.21, .24, .85);
 const grey = rgb(.03, .03, .03);
+
+//default fonts
+// const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman)
+// const timesRomanFontBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold)
+
 
 
 export async function drawTable({
@@ -29,8 +36,6 @@ export async function drawTable({
     maxTableWidth=false,
     maxTableHeight=false,
     rowHeightSizing='auto', //auto || 100px
-    alternateRowColor=false, //true || false 
-    alternateCellColor='#c9c2c1', //#c9c2c1 || Hex Color Value
     tableBoarder=true,
     tableBoarderThickness=false,
     tableBoarderColor=black,
@@ -61,7 +66,9 @@ export async function drawTable({
     headerWrapText=false,
     //CELL SETTINGS
     cellFont, // timesnewroman || any pdflib standard font
-    cellBackgroundColor=grey, //#ffffff || Hex Color Value
+    cellBackgroundColor=white, //#ffffff || Hex Color Value
+    alternateRowColor=true, //true || false 
+    alternateCellColor=grey, //#c9c2c1 || Hex Color Value
     cellTextSize=10, //cell text size
     cellTextColor=black, //#000000 || Hex Color Value
     cellHeight=10,
@@ -105,7 +112,8 @@ export async function drawTable({
     const headerFullTextHeight = headerTextRows * headerTextSize;
     const totalHeaderHeight = Math.max(headerHeight, headerFullTextHeight);
     const rowStartingY =  totalHeaderHeight + cellHeight;
-    const availableTableHeight = totalHeaderHeight + (numberOfRows * cellHeight) + (numberOfSubHeadings * subHeadingHeight);
+    const TotalRowHeight = getTotalRowHeight(data, cellFont, cellHeight, cellTextSize, columnWidths);
+    const availableTableHeight = totalHeaderHeight + TotalRowHeight + (numberOfSubHeadings * subHeadingHeight);
     
     // build table
     const tableProps = {
