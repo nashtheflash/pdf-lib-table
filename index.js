@@ -14,77 +14,60 @@ const white = rgb(1, 1, 1);
 const blue = rgb(.21, .24, .85);
 const grey = rgb(.03, .03, .03);
 
-//default fonts
-// const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman)
-// const timesRomanFontBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold)
-
-
-
 export async function drawTable({
-    data,
-    page, //page provided by pdf-lib
-    pdfDoc,
-    columns='colunms', //column definitions
+    data, // Required - No Default - data t be printed
+    page, // Required - No Default - page provided by pdf-lib
+    pdfDoc, // Required - No Default - pdfDoc that the table will be printed on
+    columns, // Required - No Default - column definitions
     //TABLE SETTINGS
-    startingX=0, //the starting x coordinate
-    startingY=0, //the starting y coordinate
-    tableType='vertical', //vertical || horizontal || 2way
-    dividedX=true,
-    dividedY=true,
-    dividedXColor=black, //#000000 || Hex Color Value
-    dividedYColor=black, //#000000 || Hex Color Value
-    dividedXThickness=1,
-    dividedYThickness=1,
-    maxTableWidth=false,
-    maxTableHeight=false,
-    rowHeightSizing='auto', //auto || 100px
-    tableBoarder=true,
-    tableBoarderThickness=false,
-    tableBoarderColor=black,
-    rounded=false, //sets if the table corners are rounded
-    customContinuesOnNextPage=false, //can pass a function for what to draw
-    smPageFiller=false, //can pass a function for what to draw
-    mdPageFiller=false, //can pass a function for what to draw
-    lgPageFiller=false, //can pass a function for what to draw
-    //SUB HEADINGS
-    subHeadingBackgroundColor='#8a8584', //#8a8584 || Hex Color Value
-    subHeadingHeight=12, //table header text size
-    subHeadingFont='timesnewroman', // timesnewroman || any pdflib standard font
-    subHeadingTextColor=black, //#000000 || Hex Color Value
-    subHeadingTextSize='10', //table header text size
+    startingX=0, // Default 0 - Default 0 - the starting x coordinate
+    startingY=0, // Default 0 - the starting y coordinate
+    tableType='vertical', // Default 'vertical' - Options: vertical || horizontal || 2way TODO: horizontal || 2way not suported yet
+    dividedX=true, // Default true - sets if the table has x dividers
+    dividedY=true, // Default true - sets if the table has y dividers
+    dividedXColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    dividedYColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    dividedXThickness=1, // Default 1 - sets x divider thickness
+    dividedYThickness=1, // Default 1 - sets y divider thickness
+    maxTableWidth=false, // Default false - table is defaulted to page width but a max value can be passed
+    maxTableHeight=false, // Default false - table is defaulted to page height but a max value can be passed
+    rowHeightSizing='auto', // Default 'auto' //TODO: remove this.
+    tableBoarder=true, // Default true - tables have a boader by default but it can be removed by passing false
+    tableBoarderThickness=1, // Default 1 - sets the thickness of the table boarder
+    tableBoarderColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    rounded=false, //TODO: add or remove this option. Currently not supported
+    customContinuesOnNextPage=false, // Default false - can pass a function for what to draw
+    smPageFiller=false, // Default false - can pass a function for what to draw TODO: Currently not supported
+    mdPageFiller=false, // Default false - can pass a function for what to draw TODO: Currently not supported
+    lgPageFiller=false, // Default false - can pass a function for what to draw TODO: Currently not supported
+    //SUB HEADINGS TODO: not suported yet
+    subHeadingBackgroundColor='#8a8584', //TODO: Currently not supported
+    subHeadingHeight=12, //TODO: Currently not supported
+    subHeadingFont='timesnewroman', //TODO: Currently not supported
+    subHeadingTextColor=black, //TODO: Currently not supported
+    subHeadingTextSize='10', //TODO: Currently not supported
     //HEADER SETTINGS
-    headerFont, // timesnewroman || any pdflib standard font
-    headerDividedX=true,
-    headerDividedY=true,
-    headerDividedXColor=black, //#000000 || Hex Color Value
-    headerDividedYColor=black, //#000000 || Hex Color Value
-    headerDividedXThickness=1,
-    headerDividedYThickness=1,
-    headerBackgroundColor=blue, //#8a8584 || Hex Color Value
-    headerHeight=10, //height of the table header
-    headerTextColor=false, //#000000 || Hex Color Value
-    headerTextSize=10, //table header text size
-    headerTextAlignment='left', //left/right/center 
-    headerWrapText=false,
+    headerFont, // Required -  No Default - any pdflib standard font
+    headerDividedX=true, // Default true - sets if the table header has x dividers
+    headerDividedY=true, // Default true - sets if the table header has y divider
+    headerDividedXColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    headerDividedYColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    headerDividedXThickness=1, // Default 1 - sets the thickness of the table header x divider
+    headerDividedYThickness=1, // Default 1 - sets the thickness of the table header y divider
+    headerBackgroundColor=grey, // Default - rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
+    headerHeight=10, // Default 10 - height of the table header
+    headerTextColor=false, // Default false -  Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    headerTextSize=10, // Default 10 - table header text size
+    headerTextAlignment='left', // Default 'left' - left/right/center 
+    headerWrapText=false, // Default false - allows text in the header to wrap
     //CELL SETTINGS
-    cellFont, // timesnewroman || any pdflib standard font
-    cellBackgroundColor=blue, //#ffffff || Hex Color Value
-    alternateRowColor=true, //true || false 
-    alternateCellColor=grey, //#c9c2c1 || Hex Color Value
-    cellTextSize=10, //cell text size
-    cellTextColor=black, //#000000 || Hex Color Value
-    // cellHeight=10,
-
+    cellFont, // Required -  No Default - any pdflib standard font
+    cellBackgroundColor=white, //rgb(1, 1, 1) - can pass in any pdf-lib rgb value
+    alternateRowColor=true, // Default true - cell rows will alternate background color
+    alternateCellColor=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
+    cellTextSize=10, // Default 10 - cell text size
+    cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
 } = {}) {
-
-    page.drawText('...', {
-        x: startingX,
-        y: startingY,
-        size: 10,
-        // headerTextColor: headerTextColor,
-        // font: timesRomanFontBold
-    });
-
     // process data
     const pageHeight = page.getHeight();
     const pageWidth = page.getWidth();

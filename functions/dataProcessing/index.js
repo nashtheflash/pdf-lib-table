@@ -9,7 +9,7 @@ export const getColumnIds = (columns) => {
   }, []);
 
   return extractedColumnIds;
-}
+};
 
 export const getColumnManualWidths = (columns) => {
   const extractedWidths = columns.reduce((acc, curr) => {
@@ -20,30 +20,7 @@ export const getColumnManualWidths = (columns) => {
   }, []);
 
   return extractedWidths;
-}
-
-
-// export const getColumnAutoWidths = (columns) => {
-//   const extractedWidths = columns.reduce((acc, curr) => {
-//     if (curr.width) {
-//       acc = {...acc, [curr.columnId]: curr.width}
-//     }
-//     return acc;
-//   }, []);
-
-//   return extractedWidths;
-// }
-
-// export const getColumnTextWrap = (columns) => {
-//     const extractedWidths = columns.reduce((acc, curr) => {
-//       if (curr.width) {
-//         acc = {...acc, [curr.columnId]: curr.wrapText}
-//       }
-//       return acc;
-//     }, []);
-  
-//     return extractedWidths;
-// }
+};
 
 const getLongestWord = (cellFont, cellTextSize, text) => {
   const brokenText = text.split(' ');
