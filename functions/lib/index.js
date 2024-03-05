@@ -25,19 +25,17 @@ export const getWrapedText = (font, fontSize, textAreaSize, text) => {
 
     //if there are no line breaks push the words
     if(lineBreaks.length === 0) lines.push(words.join(' '));
-    
     lineBreaks.forEach((lb, i) => {
-        console.log(lb, i, lineBreaks, lineBreaks.length, words.length)
-        if(lineBreaks.length === 1 && lineBreaks[0] !== 0){
-            lines.push(words.slice(0, lb).join(' '));
-            lines.push(words.slice(lb).join(' '));
-        }
-        if(i === 0 && lineBreaks[0] === 0)                      lines.push(words[0]);
-        if(i === 0 && lineBreaks[0] === 0 && words.length > 1)  lines.push(words.slice(1).join(' '));
-        if(i === 0 && lineBreaks.length - 1 !== 0)              lines.push(words.slice(i, lb).join(' '));
-        if(i !== 0)                                             lines.push(words.slice(lineBreaks[i-1], lb).join(' '));
-        if(i === lineBreaks.length - 1 && i !== 0)              lines.push(words.slice(lineBreaks[i]).join(' '));
-    })
+        // console.log(lb, i, lineBreaks, lineBreaks.length, words.length, textAreaSize, words)
+        if(lb === 0)                                                            lines.push(words[0]);
+        if(lb === 0 && lineBreaks.length === 2)                                 lines.push(words.slice(1).join(' '));
+        if(lb !== 0 && i !== 0 && lineBreaks[i-1] === 0)                        lines.push(words.slice(1, lb).join(' '));
+        if(lb !== 0 && i === lineBreaks.length - 1 && lineBreaks[i-1] === 0)    lines.push(words.slice(1).join(' '));
+        if(lb !== 0 && i === 0)                                                 lines.push(words.slice(i, lb).join(' '));
+        if(lb !== 0 && i !== 0 && lineBreaks[i-1] !==0)                         lines.push(words.slice(lineBreaks[i-1], lb).join(' '));
+        if(lb !== 0 && i === lineBreaks.length - 1 && lineBreaks[i-1] !== 0)    lines.push(words.slice(lineBreaks[i]).join(' '));
+    });
 
+    // console.log(lines);
     return lines;
 }

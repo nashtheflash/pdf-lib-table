@@ -31,8 +31,10 @@ export async function drawTable({
     tableType='vertical', //vertical || horizontal || 2way
     dividedX=true,
     dividedY=true,
-    dividedXColor='#000000', //#000000 || Hex Color Value
-    dividedYColor='#000000', //#000000 || Hex Color Value
+    dividedXColor=black, //#000000 || Hex Color Value
+    dividedYColor=black, //#000000 || Hex Color Value
+    dividedXThickness=1,
+    dividedYThickness=1,
     maxTableWidth=false,
     maxTableHeight=false,
     rowHeightSizing='auto', //auto || 100px
@@ -131,6 +133,8 @@ export async function drawTable({
         dividedY,
         dividedXColor,
         dividedYColor,
+        dividedXThickness,
+        dividedYThickness,
         maxTableWidth,
         maxTableHeight,
         rowHeightSizing,

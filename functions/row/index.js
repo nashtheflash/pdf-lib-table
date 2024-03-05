@@ -1,5 +1,5 @@
 import { getTextWidth, getWrapedText } from "../lib";
-import { getCellTextRowsByColumn } from "./rowFunctions";
+import { getCellTextRowsByColumn, drawCellBackground, drawCellDividerX, drawCellDividerY, getCellY, getTextAlignment, drawCellText } from "./rowFunctions";
 
 export const drawRows = ({
     page,
@@ -14,6 +14,10 @@ export const drawRows = ({
     tableType,
     dividedX,
     dividedY,
+    dividedXColor,
+    dividedYColor,
+    dividedXThickness,
+    dividedYThickness,
     //CELL SETTINGS
     cellFont,
     cellBackgroundColor,
@@ -37,92 +41,48 @@ export const drawRows = ({
     rowSectionStartingY
 }) => {
 
-
-
     //Wording
     let horizontalCursor = 0; //horizontal Alignment I think about a cusor moving across the screen printing
-    let vertialCursor = 0; //vertial Alignment I think about a cusor moving across the screen printing
     let currentRowHeight = 0; //measures the row height going down the page
-    let LastTextRowHeight = 0; //measures the text height in a cell
     data.forEach((row, index) => {
-        //finds the number of text rows per cell
-        let rowLengths = {};
-        Object.keys(row).forEach(function(key, index) {
-            const cellText = getWrapedText(cellFont, cellTextSize, columnWidths[key], row[key]);
-            console.log(cellText);
-            rowLengths = {...rowLengths, [key]: cellText.length}
-        });
-        
+        const rowLengths = Object.keys(row).map((key) =>  getWrapedText(cellFont, cellTextSize, columnWidths[key], row[key]).length);
         const rowStartingY = startingY - rowSectionStartingY - currentRowHeight;
-        const rowRows = Math.max(...Object.values(rowLengths)) // this is the nummber of text rows in each row
-        const rowHeight = rowRows * cellTextSize
+        const rowRows = Math.max(...rowLengths); // this is the nummber of text rows in each row
+        const rowHeight = rowRows * cellTextSize;
         
         //Cell Background color
-        page.drawRectangle({
-            x: startingX + horizontalCursor,
-            //y: startingY - vertialCursor - rowSectionStartingY,
-            y: rowStartingY + cellTextSize - rowHeight,
-            width: availableTableWidth,
-            height: rowHeight,
-            borderWidth: 0,
-            color: index % 2 !== 0 &&  alternateRowColor ? alternateCellColor : cellBackgroundColor,
-            opacity: 0.25
-        })
-        
-        const dataColumn = Object.keys(row);
-        dataColumn.forEach((cell) => {
-            const cellData = row[cell];
-            const columnSettings = columns.filter((column) => column.columnId == cell)[0]; //TODO: Convert to .find()
-            
-            const cellText = getWrapedText(cellFont, cellTextSize, columnWidths[columnSettings.columnId], cellData);
-            const cellRows = cellText.length;
+        drawCellBackground({ page, index, startingX, rowStartingY, rowHeight, horizontalCursor, availableTableWidth, cellTextSize, alternateRowColor, alternateCellColor, cellBackgroundColor });
 
-            
+        //Cell divider Y must be turned on and it does not print for the last column
+        if(dividedX && index != data.length - 1) drawCellDividerX({ page, startingX, rowStartingY, rowHeight, availableTableWidth, cellTextSize, dividedXThickness, dividedXColor });
+        
+        Object.keys(row).forEach((cell, i) => {
+            const columnSettings = columns.find((column) => column.columnId == cell);            
+            const cellText = getWrapedText(cellFont, cellTextSize, columnWidths[columnSettings.columnId], row[cell]);
+            console.log(cellText)
             //If the item is a subheading then print subheading
-            if(cellData.sectionId) {
-                drawSubHeading(cellData);
+            if(row[cell].sectionId) {
+                drawSubHeading(row[cell]);
                 return;
             };
 
-            vertialCursor = ((rowRows - cellText.length) * cellTextSize) + currentRowHeight; //sets cursor to the bottom of the cell
             cellText.forEach((lineOfText, i) => {
-                const cellRow = cellRows - i; //what line is printing
-                
-                let cellY = 0;
-                if(cellRow === rowRows && cellRows !== 1) {
-                    cellY = 0;
-                } else if(cellRows === 1) {
-                    cellY = (rowRows - 1) * cellTextSize;
-                } else if(cellRow < rowRows && rowRows !== cellRows) {
-                    cellY = (cellRow - (cellRow - i)) * cellTextSize + cellTextSize;
-                } else if(cellRow < rowRows) {
-                    cellY = (cellRow - (cellRow - i)) * cellTextSize;
-                };
-
+                //get the line y cordinate within the cell
+                const cellY = getCellY({ i, rowRows, cellRows: cellText.length, cellTextSize});
                 //Text Alignment
-                let alignment = 0;
-                // if(!columnSettings.textAlignment || columnSettings.textAlignment === 'left') alignment = columnWidths[columnSettings.columnId] - getTextWidth(cellFont, cellTextSize, lineOfText);
-                // if(columnSettings.textAlignment === 'right') alignment = columnWidths[columnSettings.columnId] - getTextWidth(cellFont, cellTextSize, lineOfText);
-                // if(columnSettings.textAlignment === 'center') alignment = (columnWidths[columnSettings.columnId] - getTextWidth(cellFont, cellTextSize, lineOfText)) / 2;
-                
+                const alignment = getTextAlignment({ alignment: columnSettings.textAlignment, columnWidth: columnWidths[columnSettings.columnId], cellFont, cellTextSize, lineOfText });
                 //Cell Text
-                page.drawText(lineOfText, {
-                    x: startingX + horizontalCursor,
-                    y: rowStartingY - cellY,
-                    size: cellTextSize,
-                    font: cellFont,
-                    color: cellTextColor,
-                    lineHeight: cellTextSize
-                });
+                drawCellText({ page, startingX, rowStartingY, cellY, horizontalCursor, alignment, cellTextSize, cellFont, cellTextColor, cellTextSize, lineOfText });
             })
             horizontalCursor += columnWidths[columnSettings.columnId]; //Moves the corsor within the cell for text wraping;
+
+            //Cell divider X must be turned on and it does not print for the last column
+            if(dividedY && i != Object.keys(row).length - 1) drawCellDividerY({ page, startingX, rowStartingY, horizontalCursor, rowHeight, cellTextSize, dividedYThickness, dividedYColor});
+        
         });
         horizontalCursor = 0;
         currentRowHeight += rowHeight;
-
     });
-
-
 };
 
 
