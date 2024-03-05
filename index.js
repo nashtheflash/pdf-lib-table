@@ -3,7 +3,7 @@
  * 
  */
 import { rgb } from 'pdf-lib';
-import { getLongestColumnItem, getColumnManualWidths, getHeaderItemLengths, getColumnWidths, getColumnIds, getNumberOfRows, getNumberOfSubHeadings } from './functions/dataProcessing';
+import { getLongestColumnItem, getColumnManualWidths, getHeaderItemLengths, getColumnWidths, getColumnIds, getNumberOfRows, getNumberOfSubHeadings } from './functions/lib';
 import { draw2WayTable, drawHorizontalTable, drawVerticalTable } from './functions/table';
 import { getHeaderRows } from './functions/header/headerFuncitons';
 import { getTotalRowHeight } from './functions/row/rowFunctions';
