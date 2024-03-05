@@ -5,6 +5,7 @@ currently a work in progress and subject to change.
 Basic Usage
 
 Define Columns:
+```
     const columns = [
         {
             columnId:'header1',
@@ -23,8 +24,9 @@ Define Columns:
             header: 'Header Four',
         }
     ]
-
+```
 build data:
+```
     const data = [
         {
             header1: 'row1Column1',
@@ -51,8 +53,9 @@ build data:
             header4: 'row4Column4',
         },
     ]
+```
 Draw Table:
-
+```
 drawTable({
     data,                       // Required - No Default - data t be printed
     page,                       // Required - No Default - page provided by pdf-lib
@@ -107,3 +110,4 @@ drawTable({
     cellTextSize,               // Default 10 - cell text size
     cellTextColor,              // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
 });
+```
