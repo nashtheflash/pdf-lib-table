@@ -66,12 +66,12 @@ export async function drawTable({
     headerWrapText=false,
     //CELL SETTINGS
     cellFont, // timesnewroman || any pdflib standard font
-    cellBackgroundColor=white, //#ffffff || Hex Color Value
+    cellBackgroundColor=blue, //#ffffff || Hex Color Value
     alternateRowColor=true, //true || false 
     alternateCellColor=grey, //#c9c2c1 || Hex Color Value
     cellTextSize=10, //cell text size
     cellTextColor=black, //#000000 || Hex Color Value
-    cellHeight=10,
+    // cellHeight=10,
 
 } = {}) {
 
@@ -92,6 +92,7 @@ export async function drawTable({
     const headerLengths = getHeaderItemLengths(columns, headerFont, headerTextSize);
     const longestRowItem = getLongestColumnItem(data, cellFont, cellTextSize);
     const manualColumnWidths = getColumnManualWidths(columns);
+    //const autoColumnWidths = getColumnAutoWidths(columns);
     const availableTableWidth = !maxTableWidth ? (pageWidth - startingX) : Math.min(pageWidth, maxTableWidth);
     const columnWidths = getColumnWidths({
         page,
@@ -111,8 +112,8 @@ export async function drawTable({
     const headerTextRows = getHeaderRows({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
     const headerFullTextHeight = headerTextRows * headerTextSize;
     const totalHeaderHeight = Math.max(headerHeight, headerFullTextHeight);
-    const rowStartingY =  totalHeaderHeight + cellHeight;
-    const TotalRowHeight = getTotalRowHeight(data, cellFont, cellHeight, cellTextSize, columnWidths);
+    const rowSectionStartingY =  totalHeaderHeight + cellTextSize;
+    const TotalRowHeight = getTotalRowHeight(data, cellFont, cellTextSize, cellTextSize, columnWidths);
     const availableTableHeight = totalHeaderHeight + TotalRowHeight + (numberOfSubHeadings * subHeadingHeight);
     
     // build table
@@ -168,7 +169,7 @@ export async function drawTable({
         cellBackgroundColor,
         cellTextSize,
         cellTextColor,
-        cellHeight,
+        // cellHeight,
         //DERIVED
         pageHeight,
         pageWidth,
@@ -182,7 +183,7 @@ export async function drawTable({
         columnWidths,
         headerTextRows,
         headerFullTextHeight,
-        rowStartingY
+        rowSectionStartingY
     };
 
     if(tableType === 'vertical') drawVerticalTable(tableProps);

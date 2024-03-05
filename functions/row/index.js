@@ -19,7 +19,7 @@ export const drawRows = ({
     cellBackgroundColor,
     cellTextSize,
     cellTextColor,
-    cellHeight,
+    //cellHeight,
     //DERIVED
     pageHeight,
     pageWidth,
@@ -34,7 +34,7 @@ export const drawRows = ({
     headerHeight,
     headerTextRows,
     headerFullTextHeight,
-    rowStartingY
+    rowSectionStartingY
 }) => {
 
 
@@ -42,84 +42,85 @@ export const drawRows = ({
     //Wording
     let horizontalCursor = 0; //horizontal Alignment I think about a cusor moving across the screen printing
     let vertialCursor = 0; //vertial Alignment I think about a cusor moving across the screen printing
+    let currentRowHeight = 0; //measures the row height going down the page
+    let LastTextRowHeight = 0; //measures the text height in a cell
     data.forEach((row, index) => {
-        
         //finds the number of text rows per cell
         let rowLengths = {};
         Object.keys(row).forEach(function(key, index) {
             const cellText = getWrapedText(cellFont, cellTextSize, columnWidths[key], row[key]);
+            console.log(cellText);
             rowLengths = {...rowLengths, [key]: cellText.length}
         });
-        const mostRows = Math.max(...Object.values(rowLengths))
-        // console.log(mostRows);
-       
+        
+        const rowStartingY = startingY - rowSectionStartingY - currentRowHeight;
+        const rowRows = Math.max(...Object.values(rowLengths)) // this is the nummber of text rows in each row
+        const rowHeight = rowRows * cellTextSize
         
         //Cell Background color
         page.drawRectangle({
             x: startingX + horizontalCursor,
-            y: startingY - vertialCursor - rowStartingY,
+            //y: startingY - vertialCursor - rowSectionStartingY,
+            y: rowStartingY + cellTextSize - rowHeight,
             width: availableTableWidth,
-            height:cellHeight,
+            height: rowHeight,
             borderWidth: 0,
             color: index % 2 !== 0 &&  alternateRowColor ? alternateCellColor : cellBackgroundColor,
             opacity: 0.25
         })
         
         const dataColumn = Object.keys(row);
-        let LastRowHeight;
         dataColumn.forEach((cell) => {
             const cellData = row[cell];
             const columnSettings = columns.filter((column) => column.columnId == cell)[0]; //TODO: Convert to .find()
-
+            
             const cellText = getWrapedText(cellFont, cellTextSize, columnWidths[columnSettings.columnId], cellData);
-            //console.log('cellText: ',cellText.length);
+            const cellRows = cellText.length;
 
+            
             //If the item is a subheading then print subheading
             if(cellData.sectionId) {
                 drawSubHeading(cellData);
                 return;
             };
 
-            // vertialCursor = 0;
-            cellText.forEach((lineOfText) => {
-                // vertialCursor = (mostRows - cellText.length) * cellTextSize;
+            vertialCursor = ((rowRows - cellText.length) * cellTextSize) + currentRowHeight; //sets cursor to the bottom of the cell
+            cellText.forEach((lineOfText, i) => {
+                const cellRow = cellRows - i; //what line is printing
+                
+                let cellY = 0;
+                if(cellRow === rowRows && cellRows !== 1) {
+                    cellY = 0;
+                } else if(cellRows === 1) {
+                    cellY = (rowRows - 1) * cellTextSize;
+                } else if(cellRow < rowRows && rowRows !== cellRows) {
+                    cellY = (cellRow - (cellRow - i)) * cellTextSize + cellTextSize;
+                } else if(cellRow < rowRows) {
+                    cellY = (cellRow - (cellRow - i)) * cellTextSize;
+                };
+
                 //Text Alignment
                 let alignment = 0;
-                if(!columnSettings.textAlignment || columnSettings.textAlignment === 'left') alignment = columnWidths[columnSettings.columnId] - getTextWidth(cellFont, cellTextSize, lineOfText);
-                if(columnSettings.textAlignment === 'right') alignment = columnWidths[columnSettings.columnId] - getTextWidth(cellFont, cellTextSize, lineOfText);
-                if(columnSettings.textAlignment === 'center') alignment = (columnWidths[columnSettings.columnId] - getTextWidth(cellFont, cellTextSize, lineOfText)) / 2;
+                // if(!columnSettings.textAlignment || columnSettings.textAlignment === 'left') alignment = columnWidths[columnSettings.columnId] - getTextWidth(cellFont, cellTextSize, lineOfText);
+                // if(columnSettings.textAlignment === 'right') alignment = columnWidths[columnSettings.columnId] - getTextWidth(cellFont, cellTextSize, lineOfText);
+                // if(columnSettings.textAlignment === 'center') alignment = (columnWidths[columnSettings.columnId] - getTextWidth(cellFont, cellTextSize, lineOfText)) / 2;
                 
                 //Cell Text
                 page.drawText(lineOfText, {
                     x: startingX + horizontalCursor,
-                    y: startingY - vertialCursor - rowStartingY,
+                    y: rowStartingY - cellY,
                     size: cellTextSize,
                     font: cellFont,
                     color: cellTextColor,
-                    lineHeight: cellHeight
+                    lineHeight: cellTextSize
                 });
-                vertialCursor += cellHeight * (cellText.length - 1); //Moves the corsor within the cell for text wraping;
             })
-            LastRowHeight = cellHeight * (cellText.length - 1);
             horizontalCursor += columnWidths[columnSettings.columnId]; //Moves the corsor within the cell for text wraping;
         });
-        vertialCursor = (cellHeight * (index + 1)) + LastRowHeight; //moves the cursor to the next row
         horizontalCursor = 0;
-        
-        //Colum Divider must be turned on and it does not print for the last column
-        // if(headerDividedY && columns[columns.length - 1] != column) {
-        //     page.drawLine({
-        //         start: { x: startingX + horizontalCursor, y: startingY },
-        //         end: { x: startingX + horizontalCursor, y: startingY - Math.max(headerHeight, headerFullTextHeight) },
-        //         thickness: headerDividedYThickness,
-        //         color: headerDividedYColor,
-        //         opacity: 0.75,
-        //     });
-        // };
+        currentRowHeight += rowHeight;
 
-        // vertialCursor = 0;
     });
-
 
 
 };
