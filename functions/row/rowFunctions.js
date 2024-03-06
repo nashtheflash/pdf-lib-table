@@ -11,9 +11,8 @@ export const getTotalRowHeight = (data, cellFont, cellTextSize, cellHeight, cell
         });
         return rowHeight
     })
-    const maxHeight = height.map((row) => Math.max(...row))
-    console.log('CTS', maxHeight);
-    const totalRowHeight = maxHeight.map((row) => cellHeight * row)
+    const maxHeight = height.map((row) => Math.max(...row));
+    const totalRowHeight = maxHeight.map((row) => cellHeight * row);
     
     
     const sumRowHeights = totalRowHeight.reduce(
