@@ -22,8 +22,9 @@ export const drawRows = ({
     cellFont,
     cellBackgroundColor,
     cellTextSize,
+    cellHeight,
     cellTextColor,
-    //cellHeight,
+    cellPaddingBottom,
     //DERIVED
     pageHeight,
     pageWidth,
@@ -48,18 +49,19 @@ export const drawRows = ({
         const rowLengths = Object.keys(row).map((key) =>  getWrapedText(cellFont, cellTextSize, columnWidths[key], row[key]).length);
         const rowStartingY = startingY - rowSectionStartingY - currentRowHeight;
         const rowRows = Math.max(...rowLengths); // this is the nummber of text rows in each row
-        const rowHeight = rowRows * cellTextSize;
+        //const rowHeight = rowRows * cellTextSize;
+        const rowHeight = rowRows * cellHeight + cellPaddingBottom;
         
         //Cell Background color
-        drawCellBackground({ page, index, startingX, rowStartingY, rowHeight, horizontalCursor, availableTableWidth, cellTextSize, alternateRowColor, alternateCellColor, cellBackgroundColor });
+        drawCellBackground({ page, index, startingX, rowStartingY, rowHeight, horizontalCursor, availableTableWidth, cellTextSize, cellHeight, alternateRowColor, alternateCellColor, cellBackgroundColor });
 
         //Cell divider Y must be turned on and it does not print for the last column
-        if(dividedX && index != data.length - 1) drawCellDividerX({ page, startingX, rowStartingY, rowHeight, availableTableWidth, cellTextSize, dividedXThickness, dividedXColor });
+        if(dividedX && index != data.length - 1) drawCellDividerX({ page, startingX, rowStartingY, rowHeight, availableTableWidth, cellTextSize, cellHeight, dividedXThickness, dividedXColor });
         
         Object.keys(row).forEach((cell, i) => {
             const columnSettings = columns.find((column) => column.columnId == cell);            
             const cellText = getWrapedText(cellFont, cellTextSize, columnWidths[columnSettings.columnId], row[cell]);
-            console.log(cellText)
+            //console.log(cellText)
             //If the item is a subheading then print subheading
             if(row[cell].sectionId) {
                 drawSubHeading(row[cell]);
@@ -72,12 +74,12 @@ export const drawRows = ({
                 //Text Alignment
                 const alignment = getTextAlignment({ alignment: columnSettings.textAlignment, columnWidth: columnWidths[columnSettings.columnId], cellFont, cellTextSize, lineOfText });
                 //Cell Text
-                drawCellText({ page, startingX, rowStartingY, cellY, horizontalCursor, alignment, cellTextSize, cellFont, cellTextColor, cellTextSize, lineOfText });
+                drawCellText({ page, startingX, rowStartingY, cellY, horizontalCursor, alignment, cellTextSize, cellHeight, cellFont, cellTextColor, lineOfText });
             })
             horizontalCursor += columnWidths[columnSettings.columnId]; //Moves the corsor within the cell for text wraping;
 
             //Cell divider X must be turned on and it does not print for the last column
-            if(dividedY && i != Object.keys(row).length - 1) drawCellDividerY({ page, startingX, rowStartingY, horizontalCursor, rowHeight, cellTextSize, dividedYThickness, dividedYColor});
+            if(dividedY && i != Object.keys(row).length - 1) drawCellDividerY({ page, startingX, rowStartingY, horizontalCursor, rowHeight, cellTextSize, cellHeight, dividedYThickness, dividedYColor});
         
         });
         horizontalCursor = 0;

@@ -56,7 +56,7 @@ export async function drawTable({
     headerDividedYThickness=1, // Default 1 - sets the thickness of the table header y divider
     headerBackgroundColor=grey, // Default - rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
     headerHeight=10, // Default 10 - height of the table header
-    headerTextColor=false, // Default false -  Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    headerTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
     headerTextSize=10, // Default 10 - table header text size
     headerTextAlignment='left', // Default 'left' - left/right/center 
     headerWrapText=false, // Default false - allows text in the header to wrap
@@ -66,7 +66,9 @@ export async function drawTable({
     alternateRowColor=true, // Default true - cell rows will alternate background color
     alternateCellColor=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
     cellTextSize=10, // Default 10 - cell text size
+    cellHeight=10,
     cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    cellPaddingBottom=0,
 } = {}) {
     // process data
     const pageHeight = page.getHeight();
@@ -97,8 +99,8 @@ export async function drawTable({
     const headerTextRows = getHeaderRows({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
     const headerFullTextHeight = headerTextRows * headerTextSize;
     const totalHeaderHeight = Math.max(headerHeight, headerFullTextHeight);
-    const rowSectionStartingY =  totalHeaderHeight + cellTextSize;
-    const TotalRowHeight = getTotalRowHeight(data, cellFont, cellTextSize, cellTextSize, columnWidths);
+    const rowSectionStartingY =  totalHeaderHeight + cellHeight;
+    const TotalRowHeight = getTotalRowHeight(data, cellFont, cellTextSize, cellHeight, cellPaddingBottom, columnWidths);
     const availableTableHeight = totalHeaderHeight + TotalRowHeight + (numberOfSubHeadings * subHeadingHeight);
     
     // build table
@@ -156,7 +158,8 @@ export async function drawTable({
         cellBackgroundColor,
         cellTextSize,
         cellTextColor,
-        // cellHeight,
+        cellHeight,
+        cellPaddingBottom,
         //DERIVED
         pageHeight,
         pageWidth,

@@ -165,7 +165,6 @@ export const getColumnIds = (columns) => {
     const removeVal = autoColumnSize * skewAmount;//value to remove from lagre column
     const addVal = (autoColumnSize * skewAmount) / autoColumns.length;//value to add to smaller columns
     autoColumns.forEach(column => { //DUMB SKEW COULD CHANGE LATER
-      console.log(columSizing[column] === autoColumnSize, columSizing[column] !== autoColumnSize)
       if(columSizing[column] === autoColumnSize)  columSizing = {...columSizing, [column]: columSizing[column] - removeVal}
       if(columSizing[column] !== autoColumnSize) columSizing =  {...columSizing, [column]: columSizing[column] + addVal}
     });

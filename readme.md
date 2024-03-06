@@ -98,7 +98,7 @@ drawTable({
     headerDividedYThickness,    // Default 1 - sets the thickness of the table header y divider
     headerBackgroundColor,      // Default - rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
     headerHeight,               // Default 10 - height of the table header
-    headerTextColor,            // Default false -  Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    headerTextColor,            // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
     headerTextSize,             // Default 10 - table header text size
     headerTextAlignment,        // Default 'left' - left/right/center 
     headerWrapText,             // Default false - allows text in the header to wrap

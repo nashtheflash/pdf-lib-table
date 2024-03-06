@@ -1,7 +1,7 @@
 import { getWrapedText, getTextWidth } from "../lib";
 
 
-export const getTotalRowHeight = (data, cellFont, cellHeight, cellTextSize, columnWidths) => {
+export const getTotalRowHeight = (data, cellFont, cellTextSize, cellHeight, cellPaddingBottom, columnWidths) => {
     
     const height = data.map((row) => {
         let rowHeight = [];
@@ -12,21 +12,22 @@ export const getTotalRowHeight = (data, cellFont, cellHeight, cellTextSize, colu
         return rowHeight
     })
     const maxHeight = height.map((row) => Math.max(...row))
-    const totalRowHeight = maxHeight.map((row) => cellHeight + ((row - 1) * cellTextSize) )
+    console.log('CTS', maxHeight);
+    const totalRowHeight = maxHeight.map((row) => cellHeight * row)
     
     
     const sumRowHeights = totalRowHeight.reduce(
-        (accumulator, currentValue) => accumulator + currentValue,
+        (accumulator, currentValue) => accumulator + (currentValue + cellPaddingBottom),
         0,
     );
     
     return sumRowHeights;
 };
 
-export const drawCellBackground = ({ page, index, startingX, rowStartingY, rowHeight, horizontalCursor, availableTableWidth, cellTextSize, alternateRowColor, alternateCellColor, cellBackgroundColor }) => {
+export const drawCellBackground = ({ page, index, startingX, rowStartingY, rowHeight, horizontalCursor, availableTableWidth, cellTextSize, cellHeight, alternateRowColor, alternateCellColor, cellBackgroundColor }) => {
     page.drawRectangle({
         x: startingX + horizontalCursor,
-        y: rowStartingY + cellTextSize - rowHeight,
+        y: rowStartingY + cellHeight - rowHeight,
         width: availableTableWidth,
         height: rowHeight,
         borderWidth: 0,
@@ -36,10 +37,10 @@ export const drawCellBackground = ({ page, index, startingX, rowStartingY, rowHe
 }
 
 
-export const drawCellDividerX = ({ page, startingX, rowStartingY, rowHeight, availableTableWidth, cellTextSize, dividedXThickness, dividedXColor }) => {
+export const drawCellDividerX = ({ page, startingX, rowStartingY, rowHeight, availableTableWidth, cellTextSize, cellHeight, dividedXThickness, dividedXColor }) => {
     page.drawLine({
-        start: { x: startingX, y: rowStartingY + cellTextSize - rowHeight},
-        end: { x: startingX + availableTableWidth, y: rowStartingY + cellTextSize - rowHeight },
+        start: { x: startingX, y: rowStartingY + cellHeight - rowHeight},
+        end: { x: startingX + availableTableWidth, y: rowStartingY + cellHeight - rowHeight },
         thickness: dividedXThickness,
         color: dividedXColor,
         opacity: 1,
@@ -47,24 +48,24 @@ export const drawCellDividerX = ({ page, startingX, rowStartingY, rowHeight, ava
 }
 
 
-export const drawCellDividerY = ({ page, startingX, rowStartingY, rowHeight, horizontalCursor, cellTextSize, dividedYThickness, dividedYColor }) => {
+export const drawCellDividerY = ({ page, startingX, rowStartingY, rowHeight, horizontalCursor, cellTextSize, cellHeight, dividedYThickness, dividedYColor }) => {
     page.drawLine({
-        start: { x: startingX + horizontalCursor, y: rowStartingY + cellTextSize },
-        end: { x: startingX + horizontalCursor, y: rowStartingY + cellTextSize - rowHeight },
+        start: { x: startingX + horizontalCursor, y: rowStartingY + cellHeight },
+        end: { x: startingX + horizontalCursor, y: rowStartingY + cellHeight - rowHeight },
         thickness: dividedYThickness,
         color: dividedYColor,
         opacity: 1,
     });
 }
 
-export const drawCellText = ({ page, startingX, rowStartingY, cellY, horizontalCursor, alignment, cellTextSize, cellFont, cellTextColor, lineOfText }) => {
+export const drawCellText = ({ page, startingX, rowStartingY, cellY, horizontalCursor, alignment, cellTextSize, cellHeight, cellFont, cellTextColor, lineOfText }) => {
     page.drawText(lineOfText, {
         x: startingX + horizontalCursor + alignment,
         y: rowStartingY - cellY,
         size: cellTextSize,
         font: cellFont,
         color: cellTextColor,
-        lineHeight: cellTextSize
+        lineHeight: cellHeight
     });
 }
 

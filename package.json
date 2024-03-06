@@ -1,6 +1,6 @@
 {
   "name": "pdf-lib-table",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "table creation add on for pdf-lib",
   "main": "index.js",
   "scripts": {
