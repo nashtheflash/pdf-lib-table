@@ -1,7 +1,7 @@
 import { getTextWidth, getWrapedText } from "../lib";
 import { getHeaderRows, getHeaderTextRowsByColumn } from "./headerFuncitons";
 
-export const drawVerticalHeader = ({ 
+export const drawHorizontalHeader = ({ 
     page, 
     columns,
     columnWidths, 
@@ -57,7 +57,7 @@ export const drawVerticalHeader = ({
         const headerText = getWrapedText(headerFont, headerTextSize, columnWidths[column.columnId], column.header);
         
         vertialCursor = (longestHeaderRows - headerText.length) * headerTextSize;
-        headerText.forEach((lineOfText) => {
+        headerText.forEach((lineOfText, i) => {
             let alignment = 0;
             if(headerTextAlignment === 'right') alignment = columnWidths[column.columnId] - getTextWidth(headerFont, headerTextSize, lineOfText);
             if(headerTextAlignment === 'center') alignment = (columnWidths[column.columnId] - getTextWidth(headerFont, headerTextSize, lineOfText)) / 2;
@@ -91,7 +91,7 @@ export const drawVerticalHeader = ({
 };
 
 
-export const drawHorizontalHeader = ({ 
+export const drawVerticalHeader = ({ 
     page, 
     columns,
     columnWidths, 

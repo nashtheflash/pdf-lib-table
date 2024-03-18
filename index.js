@@ -55,7 +55,7 @@ export async function drawTable({
     headerDividedXThickness=1, // Default 1 - sets the thickness of the table header x divider
     headerDividedYThickness=1, // Default 1 - sets the thickness of the table header y divider
     headerBackgroundColor=grey, // Default - rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
-    headerHeight=10, // Default 10 - height of the table header
+    headerHeight=80, // Default 10 - height of the table header
     headerTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
     headerTextSize=10, // Default 10 - table header text size
     headerTextAlignment='left', // Default 'left' - left/right/center 
@@ -66,9 +66,9 @@ export async function drawTable({
     alternateRowColor=true, // Default true - cell rows will alternate background color
     alternateCellColor=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
     cellTextSize=10, // Default 10 - cell text size
-    cellHeight=10,
+    cellHeight=11,
     cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-    cellPaddingBottom=0,
+    //cellPaddingBottom=0,
 } = {}) {
     // process data
     const pageHeight = page.getHeight();
@@ -79,8 +79,8 @@ export async function drawTable({
     const headerLengths = getHeaderItemLengths(columns, headerFont, headerTextSize);
     const longestRowItem = getLongestColumnItem(data, cellFont, cellTextSize);
     const manualColumnWidths = getColumnManualWidths(columns);
-    //const autoColumnWidths = getColumnAutoWidths(columns);
     const availableTableWidth = !maxTableWidth ? (pageWidth - startingX) : Math.min(pageWidth, maxTableWidth);
+    
     const columnWidths = getColumnWidths({
         page,
         columnIds,
@@ -99,9 +99,12 @@ export async function drawTable({
     const headerTextRows = getHeaderRows({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
     const headerFullTextHeight = headerTextRows * headerTextSize;
     const totalHeaderHeight = Math.max(headerHeight, headerFullTextHeight);
-    const rowSectionStartingY =  totalHeaderHeight + cellHeight;
-    const TotalRowHeight = getTotalRowHeight(data, cellFont, cellTextSize, cellHeight, cellPaddingBottom, columnWidths);
-    const availableTableHeight = totalHeaderHeight + TotalRowHeight + (numberOfSubHeadings * subHeadingHeight);
+    const rowSectionStartingY =  totalHeaderHeight + cellTextSize;
+    const TotalRowHeight = getTotalRowHeight(data, cellFont, cellTextSize, cellTextSize, 0, columnWidths);
+    
+    
+    
+    const availableTableHeight = totalHeaderHeight + TotalRowHeight //+ (numberOfSubHeadings * subHeadingHeight);
     
     // build table
     const tableProps = {
@@ -159,7 +162,7 @@ export async function drawTable({
         cellTextSize,
         cellTextColor,
         cellHeight,
-        cellPaddingBottom,
+       // cellPaddingBottom,
         //DERIVED
         pageHeight,
         pageWidth,

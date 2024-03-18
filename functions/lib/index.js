@@ -1,183 +1,219 @@
+//gets the width of the text that was passed
 export const getTextWidth = (font, size, text) => font.widthOfTextAtSize(text, size);
 
+//returns and array of thest to be printed in and cell
 export const getWrapedText = (font, fontSize, textAreaSize, text) => {
-    const words = text.split(' ');
+  const words = text.toString().split(' ').map(word => (word.split('/'))).flat();//TODO: allow user to input there own charicters to split strings on for wraping
 
-    let lineBreaks = [];
-    let currentLineWidth = 0
-    
-    for (let loop = 0; loop < words.length; loop++) {
-        const currentWordLength = words.length > 1 ? getTextWidth(font, fontSize, (words[loop] + ' ')) : getTextWidth(font, fontSize, words[loop]);
+  let lineBreaks = [];
+  let currentLineWidth = 0
+  
+  for (let loop = 0; loop < words.length; loop++) {
+      const currentWordLength = words.length > 1 ? getTextWidth(font, fontSize, (words[loop] + ' ')) : getTextWidth(font, fontSize, words[loop]);
 
-        if (currentWordLength + currentLineWidth >= textAreaSize && words.length !== 0) {
-            // loop === 0 ? lineBreaks.push(loop - 1) : lineBreaks.push(loop - 1);
-            lineBreaks.push(loop)
-            currentLineWidth = 0;
-        };
-        
-        if (currentWordLength + currentLineWidth < textAreaSize && words.length !== 0) {
-            currentLineWidth += currentWordLength
-        };
-    }
+      if (currentWordLength + currentLineWidth >= textAreaSize && words.length !== 0) {
+          // loop === 0 ? lineBreaks.push(loop - 1) : lineBreaks.push(loop - 1);
+          lineBreaks.push(loop)
+          currentLineWidth = 0;
+      };
+      
+      if (currentWordLength + currentLineWidth < textAreaSize && words.length !== 0) {
+          currentLineWidth += currentWordLength
+      };
+  }
 
-    //build an array of text that is each line
-    const lines = []
+  //build an array of text that is each line
+  const lines = []
 
-    //if there are no line breaks push the words
-    if(lineBreaks.length === 0) lines.push(words.join(' '));
-    lineBreaks.forEach((lb, i) => {
-        // console.log(lb, i, lineBreaks, lineBreaks.length, words.length, textAreaSize, words)
-        if(lb === 0)                                                            lines.push(words[0]);
-        if(lb === 0 && lineBreaks.length === 2)                                 lines.push(words.slice(1).join(' '));
-        if(lb !== 0 && i !== 0 && lineBreaks[i-1] === 0)                        lines.push(words.slice(1, lb).join(' '));
-        if(lb !== 0 && i === lineBreaks.length - 1 && lineBreaks[i-1] === 0)    lines.push(words.slice(1).join(' '));
-        if(lb !== 0 && i === 0)                                                 lines.push(words.slice(i, lb).join(' '));
-        if(lb !== 0 && i !== 0 && lineBreaks[i-1] !==0)                         lines.push(words.slice(lineBreaks[i-1], lb).join(' '));
-        if(lb !== 0 && i === lineBreaks.length - 1 && lineBreaks[i-1] !== 0)    lines.push(words.slice(lineBreaks[i]).join(' '));
-    });
+  //if there are no line breaks push the words
+  if(lineBreaks.length === 0) lines.push(words.join(' '));
+  lineBreaks.forEach((lb, i) => {
+      //console.log(lb, i, lineBreaks, lineBreaks.length, words.length, textAreaSize, words);
+      if(lb === 0 && lineBreaks.length === 2)                                 lines.push(words.slice(1).join(' '));
+      if(lb === 0)                                                            lines.push(words[0]);
+      if(lb !== 0 && i === 0)                                                 lines.push(words.slice(i, lb).join(' '));
+      if(lb !== 0 && i !== 0 && lineBreaks[i-1] !==0)                         lines.push(words.slice(lineBreaks[i-1], lb).join(' '));
+      if(lb !== 0 && i === lineBreaks.length - 1 && lineBreaks[i-1] !== 0)    lines.push(words.slice(lineBreaks[i]).join(' '));
+  });
 
-    // console.log(lines);
-    return lines;
+  return lines;
 };
 
+//returns an anrray of column ids
 export const getColumnIds = (columns) => {
-    const extractedColumnIds = columns.reduce((acc, curr) => {
-      if (curr.columnId) {
-        acc.push(curr.columnId);
-      }
-      return acc;
-    }, []);
+  const extractedColumnIds = columns.reduce((acc, curr) => {
+    if (curr.columnId) {
+      acc.push(curr.columnId);
+    }
+    return acc;
+  }, []);
+
+  return extractedColumnIds;
+};
   
-    return extractedColumnIds;
-  };
+//gets the manual colemn wisths that are defined in the coleumn defininitions
+export const getColumnManualWidths = (columns) => {
+  const extractedWidths = columns.reduce((acc, curr) => {
+    if (curr.width) {
+      acc = {...acc, [curr.columnId]: curr.width}
+    }
+    return acc;
+  }, []);
+
+  return extractedWidths;
+};
+
+//this gets the smallest word in the columns
+const getMinWordLength = (cellFont, cellTextSize, text) => {
+  const brokenText = text.split(' ').map(word => (word.split('/'))).flat();
+  var longest = brokenText.reduce((a, b) => {
+        return a.length > b.length ? a : b;
+    },
+    0
+  );
+
+  const longestLength = getTextWidth(cellFont, cellTextSize, longest);
+  return longestLength
+};
+
+//this gets the longest word in the column 
+const getMaxWordLength = (cellFont, cellTextSize, text) => {
+  const brokenText = text.split(' ').map(word => (word.split('/'))).flat();
+  var longest = brokenText.reduce((a, b) => {
+        return a.length > b.length ? a : b;
+    },
+    0
+  );
   
-  export const getColumnManualWidths = (columns) => {
-    const extractedWidths = columns.reduce((acc, curr) => {
-      if (curr.width) {
-        acc = {...acc, [curr.columnId]: curr.width}
-      }
-      return acc;
-    }, []);
+  const longestLength = getTextWidth(cellFont, cellTextSize, longest);
+  return longestLength
+};
   
-    return extractedWidths;
-  };
+//returns an object with each column id as the key and a min and max value. min is the smallest word lenth and max is the langest item in the column. 
+export const getLongestColumnItem = (rows, cellFont, cellTextSize) => {
+  const minMax = {}
   
-  const getLongestWord = (cellFont, cellTextSize, text) => {
-    const brokenText = text.split(' ');
-    var longest = brokenText.reduce(
-      function (a, b) {
-          return a.length > b.length ? a : b;
-      }
-    );
-  
-    return getTextWidth(cellFont, cellTextSize, longest);
-  };
-  
-  //TODO: refactor
-  export const getLongestColumnItem = (rows, cellFont, cellTextSize) => {
-    const columnItemLength = rows.map((obj) => {
-      let newRow = {};
-      
-      Object.keys(obj).forEach(function(key, index) {
-        newRow[key] = {...newRow[key], min: getLongestWord(cellFont, cellTextSize, obj[key]?.toString()) };
-        newRow[key] = {...newRow[key], max: getTextWidth(cellFont, cellTextSize, obj[key]?.toString()) };
-      });
-  
-      return newRow;
-    });
-    return columnItemLength[0];
-  };
-  
-  export const getHeaderItemLengths = (headers, headerFont, headerTextSize) => {
-    let headerLength = {};
-  
-    headers.forEach((header) => {
-        headerLength = { ...headerLength, [header.columnId]: getTextWidth(headerFont, headerTextSize, header.header)}
-    })
+  rows.forEach((obj) => {
+    let newRow = {};
     
-    return headerLength
-  };
-  
-  export const getColumnWidths = ({
-      page, 
-      columnIds,
-      pageHeight,
-      pageWidth,
-      maxTableWidth, 
-      maxTableHeight,
-      manualColumnWidths, 
-      headerLengths, 
-      longestRowItem,
-      columnTextWrap,
-      availableTableWidth
-  }) => { 
-    let columSizing = {};
-    let manualColumns = Object.keys(manualColumnWidths);
-    let autoColumns = columnIds.filter(column => !manualColumns.includes(column));
-    let totalAutoSize = 0;
-    const totalManualSize = Object.values(manualColumnWidths).reduce((partialSum, a) => partialSum + a, 0);
-  
-    //sets initial clumn sizing. Can be changed later in the funciton
-    columnIds.forEach((id) => {
-      const headerLength = headerLengths[id];
-      const longestRow = !longestRowItem[id] ? 0 : longestRowItem[id].max;
-      const manualWidths = manualColumnWidths[id];
-  
-      if(manualWidths) { 
-        columSizing = {...columSizing, [id]: manualWidths};
-      };
-  
-      if(!manualWidths) { 
-        totalAutoSize += Math.max(headerLength, longestRow);
-        columSizing = {...columSizing, [id]: Math.max(headerLength, longestRow)};
-      };
-    })
-  
-    const totelExtraLength = (availableTableWidth - totalManualSize - totalAutoSize);
-    const columnExtraLength = totelExtraLength / autoColumns.length;
-  
-    //checks to make sure the biggest word in the column fits in the columns and adjusts acordingly && adds or removes length as needed
-    autoColumns.sort((a, b) => parseFloat(columSizing[a]) - parseFloat(columSizing[b]));
-    let removeFromBiggerRow = 0;
-    //console.log(columSizing);
-    autoColumns.forEach(column => {
-      //if there is extra length just add it evenly to all auto columns
-      if(columnExtraLength > 0) {
-        columSizing[column] += columnExtraLength
-      } else {
-        //if there is negative length. take away from the columns based on a precentage
-        const currentPO = columSizing[column] / totalAutoSize;
-        let cSize = (totelExtraLength * currentPO);
-        
-        columSizing[column] += cSize - removeFromBiggerRow;
-        removeFromBiggerRow = 0;
-  
-        if(longestRowItem[column].min - columSizing[column] > 0) {
-          removeFromBiggerRow = longestRowItem[column].min - columSizing[column]
-          columSizing[column] = longestRowItem[column].min
-        };
-      };
+    Object.keys(obj).forEach((key, index) => {
+      const min = getMinWordLength(cellFont, cellTextSize, obj[key]?.toString());
+      const max = getMaxWordLength(cellFont, cellTextSize, obj[key]?.toString());
+
+      if(!minMax[key]?.min || minMax[key].min > min) minMax[key] = { ...minMax[key], min }
+      if(!minMax[key]?.max || minMax[key].max < max) minMax[key] = { ...minMax[key], max }
+
     });
+    return newRow;
+  });
+  return minMax;
+};
+
+//gets the length of each header item and returns the info in an object
+export const getHeaderItemLengths = (headers, headerFont, headerTextSize) => {
+  let headerLength = {};
+
+  headers.forEach((header) => {
+    headerLength = { ...headerLength, [header.columnId]: getTextWidth(headerFont, headerTextSize, header.header)}
+  })
   
-    //TODO: cold remove this or change. This is just a dumb skew that I add to try to even out the columns should be at least refactored at some point
-    const skewAmount = .3;
-    const autoColumnSize = Math.max(...autoColumns.map((column) => columSizing[column])); //largestVal 
-    const removeVal = autoColumnSize * skewAmount;//value to remove from lagre column
-    const addVal = (autoColumnSize * skewAmount) / autoColumns.length;//value to add to smaller columns
-    autoColumns.forEach(column => { //DUMB SKEW COULD CHANGE LATER
-      if(columSizing[column] === autoColumnSize)  columSizing = {...columSizing, [column]: columSizing[column] - removeVal}
-      if(columSizing[column] !== autoColumnSize) columSizing =  {...columSizing, [column]: columSizing[column] + addVal}
-    });
+  return headerLength
+};
   
-    return columSizing;
-  };
+
+//This function calcs the row width for the entire table. All innner row calcs involving the width of the column shoule use this.
+export const getColumnWidths = ({
+    page, 
+    columnIds,
+    pageHeight,
+    pageWidth,
+    maxTableWidth, 
+    maxTableHeight,
+    manualColumnWidths, 
+    headerLengths, 
+    longestRowItem,
+    columnTextWrap,
+    availableTableWidth
+}) => { 
+  let columSizing = {};
+  let manualColumns = Object.keys(manualColumnWidths);
+  let autoColumns = columnIds.filter(column => !manualColumns.includes(column));
   
-  export const getNumberOfRows = (data) => {
-    const onlyRows = data.filter((item) => !item.subHeading)
-    return onlyRows.length
-  };
+  const totalManualSize = Object.values(manualColumnWidths).reduce((partialSum, a) => partialSum + a, 0);
   
-  export const getNumberOfSubHeadings =(data) => {
-    const onlySubHeadings = data.filter((item) => item.subHeading)
-    return onlySubHeadings.length
-  };
+  //sets initial clumn sizing. Can be changed later in the funciton
+  columSizing = setMinumunColumnWidth({ columnIds, headerLengths, longestRowItem, manualColumnWidths, columSizing });
+  let totalAutoSize = Object.values(columSizing).reduce((partialSum, a) => partialSum + a, 0);
+  
+  const totelExtraLength = (availableTableWidth - totalManualSize - totalAutoSize);
+  const columnExtraLength = totelExtraLength / autoColumns.length;
+  
+  //checks to make sure the biggest word in the column fits in the columns and adjusts acordingly && adds or removes length as needed
+  autoColumns.sort((a, b) => (parseFloat(columSizing[a]) < parseFloat(columSizing[b]) ? 1 : -1))
+  
+
+  let removeFromBiggerRow = 0;
+
+  autoColumns.forEach(column => {
+    //if there is extra length just add it evenly to all auto columns
+    if(columnExtraLength > 0) {
+      columSizing[column] += columnExtraLength
+    } else {
+      //if there is negative length. take away from the columns based on a precentage
+      const currentPO = columSizing[column] / totalAutoSize;
+      let cSize = (totelExtraLength * currentPO);
+      
+      columSizing[column] += cSize - removeFromBiggerRow;
+      removeFromBiggerRow = 0;
+
+      if(longestRowItem[column].min - columSizing[column] > 0) {
+        removeFromBiggerRow = longestRowItem[column].min - columSizing[column]
+        columSizing[column] = longestRowItem[column].min
+      };
+
+      if(longestRowItem[column].min < columSizing[column]) console.log('BAD')
+    };
+  });
+
+  //TODO: cold remove this or change. This is just a dumb skew that I add to try to even out the columns should be at least refactored at some point
+  // const skewAmount = .3;
+  // const autoColumnSize = Math.max(...autoColumns.map((column) => columSizing[column])); //largestVal 
+  // const removeVal = autoColumnSize * skewAmount;//value to remove from lagre column
+  // const addVal = (autoColumnSize * skewAmount) / autoColumns.length;//value to add to smaller columns
+  // autoColumns.forEach(column => { //DUMB SKEW COULD CHANGE LATER
+  //   if(columSizing[column] === autoColumnSize)  columSizing = {...columSizing, [column]: columSizing[column] - removeVal}
+  //   if(columSizing[column] !== autoColumnSize) columSizing =  {...columSizing, [column]: columSizing[column] + addVal}
+  // });
+
+  return columSizing;
+};
+  
+export const getNumberOfRows = (data) => {
+  const onlyRows = data.filter((item) => !item.subHeading)
+  return onlyRows.length
+};
+
+export const getNumberOfSubHeadings =(data) => {
+  const onlySubHeadings = data.filter((item) => item.subHeading)
+  return onlySubHeadings.length
+};
+
+export const setMinumunColumnWidth = ({ columnIds, headerLengths, longestRowItem, manualColumnWidths }) => {
+  let cs = {};
+  
+  columnIds.forEach((id) => {
+    const headerLength = headerLengths[id];
+    const longestRow = !longestRowItem[id] ? 0 : longestRowItem[id].max;
+    const manualWidths = manualColumnWidths[id];
+
+    if(manualWidths) { 
+      cs = {...cs, [id]: manualWidths};
+    };
+
+    if(!manualWidths) { 
+      cs = {...cs, [id]: Math.max(headerLength, longestRow)};
+    };
+  })
+
+  return cs
+}
