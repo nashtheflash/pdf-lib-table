@@ -1,3 +1,7 @@
+export { tableColumnWidths } from "./getColumnWidth";
+export { tableRows } from "./getRows";
+
+
 //gets the width of the text that was passed
 export const getTextWidth = (font, size, text) => font.widthOfTextAtSize(text, size);
 
@@ -216,4 +220,81 @@ export const setMinumunColumnWidth = ({ columnIds, headerLengths, longestRowItem
   })
 
   return cs
+};
+
+export const getTotalPages = (page, pageHeight, availableTableHeight, startingY) => {
+  const pageOneOverflow = (availableTableHeight - startingY);
+
+  if(pageOneOverflow <= 0) return 1
+  if(pageOneOverflow > 0) return Math.ceil(pageOneOverflow / page.getHeight()) + 1
+};
+
+
+export const createPages = (page, totalPages, pageDimensions, pdfDoc) => {
+  //the first page of the doc that the table is going to print on must be passed
+  let pages = [page];
+  
+  if(totalPages === 1) return pages;
+
+  for (let p = 0; p < totalPages - 1; p++){
+    let newPage = pdfDoc.addPage(pageDimensions);
+    pages.push(newPage);
+  };
+
+  return pages;
+};
+
+
+
+
+
+
+export const getRowMeasurments = (data, startingY, cellFont, cellTextSize, columnWidths, rowSectionStartingY) => {
+  let rowData = [];
+  let currentRowHeight = 0; //measures the row height going down the page
+
+  data.forEach((row, index) => {
+    const rowLengths = Object.keys(row).map((key) =>  getWrapedText(cellFont, cellTextSize, columnWidths[key], row[key]).length);
+    let rowStartingY = startingY - rowSectionStartingY; //TODO: minus the cuurentrowheight
+    const rowRows = Math.max(...rowLengths); // this is the nummber of text rows in each row
+    const rowHeight = rowRows * cellTextSize + 0;
+    
+    
+    rowStartingY -= currentRowHeight;
+    rowData.push({rowLengths, rowStartingY, rowRows, rowHeight});
+    currentRowHeight += rowHeight;
+
+  });
+
+  return rowData;
+};
+
+
+
+
+
+
+
+export const getRowsByPage = () => {
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

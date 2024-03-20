@@ -3,10 +3,16 @@
  * 
  */
 import { rgb } from 'pdf-lib';
-import { getLongestColumnItem, getColumnManualWidths, getHeaderItemLengths, getColumnWidths, getColumnIds, getNumberOfRows, getNumberOfSubHeadings } from './functions/lib';
+import { getLongestColumnItem, getColumnManualWidths, getHeaderItemLengths, getColumnWidths, getColumnIds, getNumberOfRows, getNumberOfSubHeadings, getTotalPages, createPages, getRowsByPage, getWrapedText, getRowMeasurments, tableColumnWidths, tableRows} from './functions/lib';
+
 import { draw2WayTable, drawHorizontalTable, drawVerticalTable } from './functions/table';
 import { getHeaderRows } from './functions/header/headerFuncitons';
 import { getTotalRowHeight } from './functions/row/rowFunctions';
+import { continuationSection } from './fillers';
+
+
+
+import { Document, Page, Table } from './classes';
 
 //default colors
 const black = rgb(0, 0, 0);
@@ -18,7 +24,11 @@ export async function drawTable({
     data, // Required - No Default - data t be printed
     page, // Required - No Default - page provided by pdf-lib
     pdfDoc, // Required - No Default - pdfDoc that the table will be printed on
+    fonts,
     columns, // Required - No Default - column definitions
+    pageDimensions=[792.0, 612.0],
+    appendedPageStartX=0,
+    appendedPageStartY=0,
     //TABLE SETTINGS
     startingX=0, // Default 0 - Default 0 - the starting x coordinate
     startingY=0, // Default 0 - the starting y coordinate
@@ -36,10 +46,9 @@ export async function drawTable({
     tableBoarderThickness=1, // Default 1 - sets the thickness of the table boarder
     tableBoarderColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
     rounded=false, //TODO: add or remove this option. Currently not supported
-    customContinuesOnNextPage=false, // Default false - can pass a function for what to draw
-    smPageFiller=false, // Default false - can pass a function for what to draw TODO: Currently not supported
-    mdPageFiller=false, // Default false - can pass a function for what to draw TODO: Currently not supported
-    lgPageFiller=false, // Default false - can pass a function for what to draw TODO: Currently not supported
+    customContinuesOnNextPage=false, // Default false - can pass a function for what to draw //TODO: add this.
+    continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
+    continuationFillerHeight=20,
     //SUB HEADINGS TODO: not suported yet
     subHeadingBackgroundColor='#8a8584', //TODO: Currently not supported
     subHeadingHeight=12, //TODO: Currently not supported
@@ -66,54 +75,31 @@ export async function drawTable({
     alternateRowColor=true, // Default true - cell rows will alternate background color
     alternateCellColor=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
     cellTextSize=10, // Default 10 - cell text size
-    cellHeight=11,
+    cellHeight=11, //TODO: remove this
+    cellLineHeight=10,
     cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+    additionalWrapCharacters= ['/']
     //cellPaddingBottom=0,
 } = {}) {
-    // process data
-    const pageHeight = page.getHeight();
-    const pageWidth = page.getWidth();
-    const numberOfRows = getNumberOfRows(data);
-    const numberOfSubHeadings = getNumberOfSubHeadings(data);
-    const columnIds = getColumnIds(columns); 
-    const headerLengths = getHeaderItemLengths(columns, headerFont, headerTextSize);
-    const longestRowItem = getLongestColumnItem(data, cellFont, cellTextSize);
-    const manualColumnWidths = getColumnManualWidths(columns);
-    const availableTableWidth = !maxTableWidth ? (pageWidth - startingX) : Math.min(pageWidth, maxTableWidth);
+
+    //columns widths
+    const columnWidths = tableColumnWidths(data, columns, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, additionalWrapCharacters); // {colID: width} thats it all logic needs to live here.
+    const rows = tableRows(data, columns, columnWidths, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, cellLineHeight, additionalWrapCharacters);//wrap the text and define where the text will print on the page; row -> [{colID, startingX, startingY, font, rowHeight, textHeight, values: [line1 of text, line 2 of text]}]
+    //number & height of rows and which page the row will print on; from above [[rows], [rows]]
+
+
     
-    const columnWidths = getColumnWidths({
-        page,
-        columnIds,
-        startingX,
-        pageHeight,
-        pageWidth,
-        maxTableWidth,
-        maxTableHeight,
-        manualColumnWidths,
-        headerLengths,
-        longestRowItem,
-        availableTableWidth
-    });
-    
-    //Heeder Measurments
-    const headerTextRows = getHeaderRows({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
-    const headerFullTextHeight = headerTextRows * headerTextSize;
-    const totalHeaderHeight = Math.max(headerHeight, headerFullTextHeight);
-    const rowSectionStartingY =  totalHeaderHeight + cellTextSize;
-    const TotalRowHeight = getTotalRowHeight(data, cellFont, cellTextSize, cellTextSize, 0, columnWidths);
-    
-    
-    
-    const availableTableHeight = totalHeaderHeight + TotalRowHeight //+ (numberOfSubHeadings * subHeadingHeight);
-    
-    // build table
-    const tableProps = {
-        data,
+    const doc = new Document(
         page,
         pdfDoc,
+    );
+
+    const pg = new Page(doc.documentPages[0]);
+
+    const table = new Table(
+        pg.page,
+        data,
         columns,
-        columnIds,
-        //TABLE SETTINGS
         startingX,
         startingY,
         tableType,
@@ -126,62 +112,202 @@ export async function drawTable({
         maxTableWidth,
         maxTableHeight,
         rowHeightSizing,
-        alternateRowColor,
-        alternateCellColor,
         tableBoarder,
         tableBoarderThickness,
         tableBoarderColor,
         rounded,
         customContinuesOnNextPage,
-        smPageFiller,
-        mdPageFiller,
-        lgPageFiller,
-        //SUB HEADINGS
-        subHeadingBackgroundColor,
-        subHeadingHeight,
-        subHeadingFont,
-        subHeadingTextColor,
-        subHeadingTextSize,
-        //HEADER SETTINGS
-        headerFont,
-        headerDividedX,
-        headerDividedY,
-        headerDividedXColor,
-        headerDividedYColor,
-        headerDividedXThickness,
-        headerDividedYThickness,
-        headerBackgroundColor,
-        headerHeight,
-        headerTextColor,
-        headerTextSize,
-        headerTextAlignment,
-        headerWrapText,
-        //CELL SETTINGS
-        cellFont,
-        cellBackgroundColor,
-        cellTextSize,
-        cellTextColor,
-        cellHeight,
-       // cellPaddingBottom,
-        //DERIVED
-        pageHeight,
-        pageWidth,
-        numberOfRows,
-        numberOfSubHeadings,
-        availableTableWidth,
-        availableTableHeight,
-        headerLengths,
-        longestRowItem,
-        manualColumnWidths,
-        columnWidths,
-        headerTextRows,
-        headerFullTextHeight,
-        rowSectionStartingY
-    };
+        //continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
+        continuationFillerHeight,
+    );
 
-    if(tableType === 'vertical') drawVerticalTable(tableProps);
-    // if(tableType === 'horizontal') drawHorizontalTable(tableProps);
-    // if(tableType === '2way') draw2WayTable(tableProps);
+    //console.log(table.columnInfo);
 
-    return tableType;
+
+
+    
+    
+    // console.log(doc.width);
+    // console.log('pages:', doc.pages.length);
+    // doc.addPage([792.0, 612.0]);
+    // doc.addPage([792.0, 612.0]);
+    // doc.addPage([792.0, 612.0]);
+    // console.log('pages:', doc.pages.length);
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // // process data
+    // const pageHeight = page.getHeight();
+    // const pageWidth = page.getWidth();
+
+    // const numberOfRows = getNumberOfRows(data);
+
+    // const numberOfSubHeadings = getNumberOfSubHeadings(data);
+    // const columnIds = getColumnIds(columns); 
+    // const headerLengths = getHeaderItemLengths(columns, headerFont, headerTextSize);
+    // const longestRowItem = getLongestColumnItem(data, cellFont, cellTextSize);
+    // const manualColumnWidths = getColumnManualWidths(columns);
+    // const availableTableWidth = !maxTableWidth ? (pageWidth - startingX) : Math.min(pageWidth, maxTableWidth);
+    
+    // const columnWidths = getColumnWidths({
+    //     page,
+    //     columnIds,
+    //     startingX,
+    //     pageHeight,
+    //     pageWidth,
+    //     maxTableWidth,
+    //     maxTableHeight,
+    //     manualColumnWidths,
+    //     headerLengths,
+    //     longestRowItem,
+    //     availableTableWidth
+    // });
+    
+    // //Heeder Measurments
+    // const headerTextRows = getHeaderRows({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
+    // const headerFullTextHeight = headerTextRows * headerTextSize;
+    // const totalHeaderHeight = Math.max(headerHeight, headerFullTextHeight);
+    // const rowSectionStartingY =  totalHeaderHeight + cellTextSize;
+    // const TotalRowHeight = getTotalRowHeight(data, cellFont, cellTextSize, cellTextSize, 0, columnWidths);
+    
+    
+    
+    // const availableTableHeight = totalHeaderHeight + TotalRowHeight //+ (numberOfSubHeadings * subHeadingHeight);
+    // const totalPages = getTotalPages(page, pageHeight, availableTableHeight, startingY);
+    //const allPages = createPages(page, totalPages, pageDimensions, pdfDoc, totalPages);
+    // const rowsByPage = getRowsByPage(allPages, numberOfRows);
+
+
+    // ///ROWS
+    // const rowMeasurments = getRowMeasurments(data, startingY, cellFont, cellTextSize, columnWidths, rowSectionStartingY);
+    // //console.log(rowMeasurments);
+
+    
+    
+    // // build table
+    // const tableProps = {
+    //     data,
+    //     page,
+    //     pdfDoc,
+    //     columns,
+    //     columnIds,
+    //     pageDimensions,
+    //     appendedPageStartX,
+    //     appendedPageStartY,
+    //     //TABLE SETTINGS
+    //     startingX,
+    //     startingY,
+    //     tableType,
+    //     dividedX,
+    //     dividedY,
+    //     dividedXColor,
+    //     dividedYColor,
+    //     dividedXThickness,
+    //     dividedYThickness,
+    //     maxTableWidth,
+    //     maxTableHeight,
+    //     rowHeightSizing,
+    //     alternateRowColor,
+    //     alternateCellColor,
+    //     tableBoarder,
+    //     tableBoarderThickness,
+    //     tableBoarderColor,
+    //     rounded,
+    //     customContinuesOnNextPage,
+    //     //FILLERS
+    //     continuationFiller,
+    //     continuationFillerHeight,
+    //     //SUB HEADINGS
+    //     subHeadingBackgroundColor,
+    //     subHeadingHeight,
+    //     subHeadingFont,
+    //     subHeadingTextColor,
+    //     subHeadingTextSize,
+    //     //HEADER SETTINGS
+    //     headerFont,
+    //     headerDividedX,
+    //     headerDividedY,
+    //     headerDividedXColor,
+    //     headerDividedYColor,
+    //     headerDividedXThickness,
+    //     headerDividedYThickness,
+    //     headerBackgroundColor,
+    //     headerHeight,
+    //     headerTextColor,
+    //     headerTextSize,
+    //     headerTextAlignment,
+    //     headerWrapText,
+    //     //CELL SETTINGS
+    //     cellFont,
+    //     cellBackgroundColor,
+    //     cellTextSize,
+    //     cellTextColor,
+    //     cellHeight,
+    //    // cellPaddingBottom,
+    //     //DERIVED
+    //     totalPages,
+    //     allPages,
+    //     pageHeight,
+    //     pageWidth,
+    //     numberOfRows,
+    //     numberOfSubHeadings,
+    //     availableTableWidth,
+    //     availableTableHeight,
+    //     headerLengths,
+    //     longestRowItem,
+    //     manualColumnWidths,
+    //     columnWidths,
+    //     headerTextRows,
+    //     headerFullTextHeight,
+    //     rowSectionStartingY,
+    //     rowMeasurments
+    // };
+
+    // if(tableType === 'vertical') drawVerticalTable(tableProps);
+    // // if(tableType === 'horizontal') drawHorizontalTable(tableProps);
+    // // if(tableType === '2way') draw2WayTable(tableProps);
+
+    // return allPages; //TODO: i need to return the end of the table and an array of pages that the table was printed on.
 };
+
+

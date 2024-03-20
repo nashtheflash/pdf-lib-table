@@ -39,16 +39,15 @@ export const drawRows = ({
     headerHeight,
     headerTextRows,
     headerFullTextHeight,
-    rowSectionStartingY
+    rowSectionStartingY,
+    rowMeasurments
 }) => {
     //Wording
     let horizontalCursor = 0; //horizontal Alignment I think about a cusor moving across the screen printing
     let currentRowHeight = 0; //measures the row height going down the page
+    
     data.forEach((row, index) => {
-        const rowLengths = Object.keys(row).map((key) =>  getWrapedText(cellFont, cellTextSize, columnWidths[key], row[key]).length);
-        const rowStartingY = startingY - rowSectionStartingY - currentRowHeight;
-        const rowRows = Math.max(...rowLengths); // this is the nummber of text rows in each row
-        const rowHeight = rowRows * cellTextSize + 0;
+        let { rowStartingY, rowRows, rowHeight } = rowMeasurments[index];
         
         //Cell Background color
         drawCellBackground({ page, index, startingX, rowStartingY, rowHeight, horizontalCursor, availableTableWidth, cellTextSize, cellHeight, alternateRowColor, alternateCellColor, cellBackgroundColor });
@@ -56,6 +55,7 @@ export const drawRows = ({
         //Cell divider Y must be turned on and it does not print for the last column
         if(dividedX && index != data.length - 1) drawCellDividerX({ page, startingX, rowStartingY, rowHeight, availableTableWidth, cellTextSize, cellHeight, dividedXThickness, dividedXColor });
         
+        //Print subheader or row
         Object.keys(row).forEach((cell, i) => {
             const columnSettings = columns.find((column) => column.columnId == cell);            
             const cellText = getWrapedText(cellFont, cellTextSize, columnWidths[columnSettings.columnId], row[cell]);
@@ -80,7 +80,6 @@ export const drawRows = ({
         
         });
         horizontalCursor = 0;
-        currentRowHeight += rowHeight;
     });
 };
 
