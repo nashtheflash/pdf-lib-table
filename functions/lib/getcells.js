@@ -3,37 +3,35 @@ import { getTextWidth } from ".";
 
 
 //[{colID, startingX, startingY, font, rowHeight, textHeight, values: [line1 of text, line 2 of text]}]
-//TODO: the header hight needs to be known and passed in!!!
-export const tableRows = (data, columns, columnWidths, startingX, startingY, maxTableWidth, pageWidth, cellFont, cellTextSize, cellLineHeight, additionalWrapCharacters, headerHeight) => {
-    let newData = [...data];
-    let availPageheight = headerHeight - startingY;
+//TODO: Pickup here
+export const tableCells = (data, columns, columnWidths, startingX, startingY, maxTableWidth, pageWidth, cellFont, cellTextSize, cellLineHeight, additionalWrapCharacters) => {
+    const rowMaster = [];
 
-    newData.forEach((row, index) => {
-        //console.log(row)
-        const longestItem = Object.keys(row).reduce((longest, col) => {
-            const columnWidth = columnWidths[col];
-            const wrappedText = getWrapedText(cellFont, cellTextSize, columnWidth, row[col], additionalWrapCharacters);
-            return wrappedText.length > longest.length ? wrappedText : longest;
-        }, []);
+    data.forEach((row, index) => {
+        let newRow = []
 
-        let rowSpaceAbove = 0;
-        if (index !== 0) {
-            for (let loop = 0; loop < index; loop ++) {
-                rowSpaceAbove += newData[loop].rowHeight
-            };
-        } else {
-            availPageheight -= longestItem.length * cellLineHeight
-        }
+        Object.keys(row).forEach((col) => {
+            const cellValues = getWrapedText(cellFont, cellTextSize, columnWidths[row], row[col], additionalWrapCharacters);
+            newRow = [
+                ... newRow, 
+                {
+                    colID: col, 
+                    rowId: index,
+                    startingX, //can probably get this later in from the column class
+                    startingY, //couls mabe get this later from the row class
+                    font: cellFont, 
+                    textHeight: cellTextSize, 
+                    lineHeight: cellLineHeight,
+                    CellHeight: cellLineHeight * cellValues.length,
+                    values: cellValues
+                }
+            ]
+        });
+        
+        rowMaster.push(newRow)
+    })
 
-        newData[index] = {
-            //...newData[index], 
-            // rowStartingY: startingY - rowSpaceAbove,
-            // rowsAbove: index,
-            // rowSpaceAbove,
-            rowHeight: longestItem.length * cellLineHeight
-        }
-    });
-    return newData;
+    //console.log(rowMaster);
 }
 
 

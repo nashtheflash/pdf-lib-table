@@ -1,12 +1,13 @@
-export { tableColumnWidths } from "./getColumnWidth";
-export { tableRows } from "./getRows";
+export { tableColumnWidths, spaceColumns, getMinColumnWidth } from "./getColumnWidth";
+export { tableCells } from "./getcells";
+export { tableRows, getWrapedText } from "./getRows";
 
 
 //gets the width of the text that was passed
 export const getTextWidth = (font, size, text) => font.widthOfTextAtSize(text, size);
 
 //returns and array of thest to be printed in and cell
-export const getWrapedText = (font, fontSize, textAreaSize, text) => {
+const getWrapedText = (font, fontSize, textAreaSize, text) => {
   const words = text.toString().split(' ').map(word => (word.split('/'))).flat();//TODO: allow user to input there own charicters to split strings on for wraping
 
   let lineBreaks = [];

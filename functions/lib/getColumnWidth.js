@@ -5,27 +5,27 @@ import { getTextWidth } from ".";
  */
 
 export const tableColumnWidths = (data, columns, startingX, startingY, maxTableWidth, pageWidth, cellFont, cellTextSize, additionalWrapCharacters) => {
-    const chars = ['/']; //TODO: move this to be setable by the user
 
     //this should be the min column width by column
     const minColumnWidth = getMinColumnWidth(data, columns, cellFont, cellTextSize, additionalWrapCharacters);
     const tableWidth = maxTableWidth && maxTableWidth < (pageWidth - startingX) ? maxTableWidth : (pageWidth - startingX);
     const finalSizing = spaceColumns(minColumnWidth, columns, tableWidth);
-
     return finalSizing;
 };
-  
-const spaceColumns = (minColumnWidth, columns, tableWidth) => {
+
+export const spaceColumns = (minColumnWidth, columns, tableWidth) => {
     const minumumTableWidth = Object.values(minColumnWidth).reduce((partialSum, a) => partialSum + a, 0);
     const extraWidth = tableWidth - minumumTableWidth
     const widthForColumns = extraWidth / columns.length
-
-    const sizing = Object.keys(minColumnWidth).map(col => minColumnWidth[col] += widthForColumns);
-
-    return sizing;
+    
+    const finalSizing = Object.fromEntries(
+        Object.entries(minColumnWidth).map(([col, width]) => [col, width + widthForColumns])
+    );
+    
+    return finalSizing;
 };
 
-const getMinColumnWidth = (data, columns, cellFont, cellTextSize, additionalWrapCharacters) => {
+export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, additionalWrapCharacters) => {
     let rowData = {};
 
     //build the rowdata var out for next step
@@ -60,7 +60,7 @@ export const breakWord = (word, char) => {
 
     let words = word.split(' ');
 
-    if(char.length !== 0) {
+    if(char && char.length !== 0) {
         char.forEach((sym) => {
         words = words.map((word) => word.split(sym))
         //words = word.split(sym)
