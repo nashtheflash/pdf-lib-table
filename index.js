@@ -64,7 +64,7 @@ export async function drawTable({
     headerDividedXThickness=1, // Default 1 - sets the thickness of the table header x divider
     headerDividedYThickness=1, // Default 1 - sets the thickness of the table header y divider
     headerBackgroundColor=grey, // Default - rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
-    headerHeight=80, // Default 10 - height of the table header
+    headerHeight=undefined, // Default 10 - height of the table header
     headerTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
     headerTextSize=10, // Default 10 - table header text size
     headerLineHeight=10,
@@ -75,7 +75,7 @@ export async function drawTable({
     cellBackgroundColor=white, //rgb(1, 1, 1) - can pass in any pdf-lib rgb value
     alternateRowColor=true, // Default true - cell rows will alternate background color
     alternateCellColor=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
-    cellTextSize=10, // Default 10 - cell text size
+    cellTextSize=8, // Default 10 - cell text size
     cellHeight=11, //TODO: remove this
     cellLineHeight=10,
     cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
@@ -125,10 +125,12 @@ export async function drawTable({
     const columnWidths = docData.tableColumnWidths();
     const dataProcessor = docData.dataProcessor(columnWidths);
     const totalPages = dataProcessor.pages;
-    console.log(totalPages)
+    const headerData = docData.tableHeaders(columnWidths);
+    const autoHeaderHeight = docData.tableHeader(columnWidths);
+
     //print the rows on each page...
 
-    console.log(dataProcessor);
+    //console.log(dataProcessor);
     for (let loop = 0; loop <= totalPages; loop++){
         if(loop === 0) {
 
@@ -164,18 +166,31 @@ export async function drawTable({
             const header = new Header(
                 table.docPage,
                 columns, 
+                headerData,
                 table.columnIds,
                 table.headers,
                 columnWidths, 
                 table.startingX, 
                 table.startingY,
-                headerFont, 
-                headerTextSize, 
+                headerHeight,
+                autoHeaderHeight,
+                headerBackgroundColor,
+                headerWrapText,
+                headerFont,
+                headerTextSize,
                 headerLineHeight,
-                headerWrapText
+                headerTextColor,
+                headerTextAlignment,
+                headerDividedX,
+                headerDividedY,
+                headerDividedXColor,
+                headerDividedYColor,
+                headerDividedXThickness,
+                headerDividedYThickness,
+                
             );
 
-            header.drawHeader();
+            header.drawHeader(table.tableWidth);
 
             table.rows.forEach((row) => {
                 row.cells.forEach((cell) => {

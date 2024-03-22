@@ -1,7 +1,7 @@
 import { getTextWidth } from ".";
 
 /**
- * Thsi shoule be the onlu place that column wisths are set.
+ * This shoule be the only place that column widths are set.
  */
 
 export const tableColumnWidths = (data, columns, startingX, startingY, maxTableWidth, pageWidth, cellFont, cellTextSize, additionalWrapCharacters) => {
@@ -27,6 +27,7 @@ export const spaceColumns = (minColumnWidth, columns, tableWidth) => {
 
 export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerFont, headerTextSize, additionalWrapCharacters) => {
     let rowData = {};
+    let headerData = {};
 
     //build the rowdata var out for next step
     columns.forEach(({ columnId }) => rowData = {...rowData, [columnId]: []});
@@ -38,11 +39,13 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
     //     })
     // });
 
-    const keys = Object.keys(data[0]); // Assuming all rows have the same keys
-    for (let i = 0; i < data.length; i++) {
+    //Rows
+    const dataLength = data.length
+    const rowKeys = Object.keys(data[0]); // Assuming all rows have the same keys
+    for (let i = 0; i < dataLength; i++) {
         const row = data[i];
-        for (let j = 0; j < keys.length; j++) {
-            const rowVal = keys[j];
+        for (let j = 0; j < rowKeys.length; j++) {
+            const rowVal = rowKeys[j];
             const value = row[rowVal];
             const words = breakWord(value.toString(), additionalWrapCharacters);
             if (!rowData[rowVal]) {
@@ -52,18 +55,37 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
             }
         }
     }
+
+    //Headers
+    const columnLength = columns.length;
+    for (let i = 0; i < columnLength; i++) {
+        const header = columns[i];
+        const words = breakWord(header.header.toString(), additionalWrapCharacters);
+        if (!headerData[header.columnId]) {
+            headerData[header.columnId] = words;
+        } else {
+            headerData[header.columnId].push(...words);
+        }
+    }
     
-    //order items from smalles to largest numbers will go to the front
+    //order rows from smalles to largest numbers will go to the front
     Object.keys(rowData).forEach(row => {
         rowData[row].sort((a,b) => a.length > b.length ? 1 : -1);
+    });
+
+    //order heaaders from smalles to largest numbers will go to the front
+    Object.keys(headerData).forEach(header => {
+        headerData[header].sort((a,b) => a.length > b.length ? 1 : -1);
     });
     
     //gets the minumum width for the column
     Object.keys(rowData).forEach((row) => {
         const columnHeader = columns.find((col) => col.columnId == row).header;
+        
+        const longestHeaderItem = headerData[row][headerData[row].length -1];
         const longestColumnItem = rowData[row][rowData[row].length -1];
         
-        rowData[row] = Math.max(getTextWidth(headerFont, headerTextSize, columnHeader), getTextWidth(cellFont, cellTextSize, longestColumnItem))
+        rowData[row] = Math.max(getTextWidth(headerFont, headerTextSize, longestHeaderItem), getTextWidth(cellFont, cellTextSize, longestColumnItem))
     })
     
     return rowData

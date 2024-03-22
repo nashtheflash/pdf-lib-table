@@ -1,4 +1,5 @@
 import { tableColumnWidths, spaceColumns, getMinColumnWidth, getWrapedText } from "../functions/lib";
+import { getTextWidth } from "../functions/lib";
 
 export class Data {
     constructor
@@ -24,7 +25,8 @@ export class Data {
     ){
         this.data = data,
         this.columns = columns,
-        this.columnHeaders = columns.map(({ columnId }) => columnId),
+        this.columnHeaders = columns.map(({ header }) => header),
+        this.columnIds = columns.map(({ columnId }) => columnId),
         this.headerHeight = headerHeight,
         this.headerFont = headerFont,        
         this.headerTextSize = headerTextSize,   
@@ -44,29 +46,20 @@ export class Data {
     }
 
     tableHeader(columnWidths) {
-        if(this.headerHeight) return this.headerHeight;
-
-        const longestItem = this.columnHeaders.reduce((longest, col) => {
-            const columnWidth = columnWidths[col];
-            const wrappedText = getWrapedText(this.headerFont, this.headerTextSize, columnWidth, col, this.additionalWrapCharacters);
-            return wrappedText.length > longest.length ? wrappedText : longest;
-        }, []);
-
-        const headerCalcHeight =  longestItem.length * this.headerLineHeight
-        
-        return headerCalcHeight;
+        if(this.headerHeight) return this.headerHeight;        
+        return Math.max(...this.tableHeaders(columnWidths).map(({ headerHeight }) => headerHeight));
     }
 
     dataWithHeaders() {
-        const fulldata = [...this.data];
+        // const fulldata = [...this.data];
 
-        const headerRow = this.columns.reduce((acc, { columnId }) => {
-            return { ...acc, [columnId]: columnId };
-        }, {});
+        // const headerRow = this.columns.reduce((acc, { columnId }) => {
+        //     return { ...acc, [columnId]: columnId };
+        // }, {});
         
-        fulldata.unshift(headerRow);
+        // fulldata.unshift(headerRow);
 
-        return fulldata;
+        // return fulldata;
     }
 
 
@@ -77,60 +70,6 @@ export class Data {
         const finalSizing = spaceColumns(minColumnWidth, this.columns, tableWidth);
         return finalSizing;
     };
-
-    // tableCells() {
-    //     const columnWidths = this.tableColumnWidths();
-    //     const rowMaster = [];
-    
-    //     this.data.forEach((row, index) => {
-    //         let newRow = []
-    //         let xCounter = this.startingX
-    //         Object.keys(row).forEach((col) => {
-    //             const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
-               
-    //             newRow = [
-    //                 ... newRow, 
-    //                 {
-    //                     colID: col, 
-    //                     rowId: index,
-    //                     startingX: xCounter, //can probably get this later in from the column class
-    //                     //startingY: this.startingY, //couls mabe get this later from the row class
-    //                     font: this.cellFont, 
-    //                     textHeight: this.cellTextSize, 
-    //                     lineHeight: this.cellLineHeight,
-    //                     CellHeight: this.cellLineHeight * cellValues.length,
-    //                     values: [...cellValues]
-    //                 }
-    //             ]
-    //             xCounter += columnWidths[col];
-    //         });
-            
-    //         rowMaster.push(newRow);
-    //         xCounter = 0;
-    //     })
-    
-    //     return rowMaster
-    // }
-
-    // tableRows() {
-    //     const columnWidths = this.tableColumnWidths();
-        
-    //     let newData = [...this.data];
-    
-    //     newData.forEach((row, index) => {
-    //         const longestItem = Object.keys(row).reduce((longest, col) => {
-    //             const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
-    //             return wrappedText.length > longest.length ? wrappedText : longest;
-    //         }, []);
-    
-    //         newData[index] = {
-    //             rowHeight: longestItem.length * this.cellLineHeight
-    //         }
-    //     });
-    //     return newData;
-    // }
-
-    
 
     tableCells(columnWidths) {
     
@@ -154,6 +93,25 @@ export class Data {
         });
     }
     
+    tableHeaders(columnWidths) {
+        return this.columnIds.map((headerID) => {
+            const col = this.columns.find(obj => obj.columnId === headerID)
+            const headerValues = getWrapedText(this.headerFont, this.headerTextSize, columnWidths[headerID], col.header, this.additionalWrapCharacters);
+
+            const header = {
+                colID: headerID,
+                //rowId: colIndex,
+                //startingX: xCounter,
+                font: this.headerFont,
+                textHeight: this.headerTextSize,
+                lineHeight: this.headerLineHeight,
+                headerHeight: this.headerLineHeight * headerValues.length,
+                values: [...headerValues]
+            };
+            return header;
+        });
+    }
+    
     tableRows(columnWidths) {
         const data = this.data.map(row => {
             const longestItem = Object.keys(row).reduce((longest, col) => {
@@ -167,40 +125,6 @@ export class Data {
         
         return data;
     }
-    
-    // dataProcessor(page) {
-    //     const rowHeights = this.tableRows();
-    //     const cells = this.tableCells();
-    
-    //     let counter = 0;
-    //     let pageCount = 0;
-    //     const pageHeight = this.pageDimensions[1];
-    
-    //     const modifiedRows = cells.map(row => {
-    //         const currentRowHeight = row[0].rowHeight;
-    //         console.log(row)
-    
-    //         if (pageCount === 0 && counter + this.tableHeader() + currentRowHeight > this.startingY) {
-    //             pageCount++;
-    //             counter = 0;
-    //         } else if (pageCount !== 0 && counter + this.tableHeader() + currentRowHeight > pageHeight) {
-    //             pageCount++;
-    //             counter = 0;
-    //         }
-    
-    //         //console.log(this.startingY, this.tableHeader(), this.cellLineHeight, counter)
-    //         const modifiedRow = row.map(cell => ({
-    //             ...cell,
-    //             page: pageCount,
-    //             startingY: (this.startingY - this.tableHeader()) - this.cellLineHeight - counter
-    //         }));
-    
-    //         counter += currentRowHeight;
-    //         return modifiedRow;
-    //     });
-    
-    //     return modifiedRows.filter(row => row[0].page === page);
-    // }
 
     dataProcessor (columnWidths) {
         const rHeight = this.tableRows(columnWidths);
@@ -323,7 +247,7 @@ export class Page {
     }
 }
 
-export class Table extends Page {
+export class Table {
     constructor(
         page,
         data,
@@ -348,7 +272,9 @@ export class Table extends Page {
         //continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
         continuationFillerHeight,
     ){
-        super(page)
+        //super(page)
+        this.page = page.page,
+        this.pageWidth = page.page.getWidth()
         this.data = data,
         this.columns = columns,
         this.startingX = startingX,
@@ -389,11 +315,11 @@ export class Table extends Page {
     }
     
     get tableWidth() {
-        return this.maxTableWidth && this.maxTableWidth < (this.pageWidth - startingX) ? this.maxTableWidth : (this.pageWidth - startingX);
+        return this.maxTableWidth && this.maxTableWidth < (this.pageWidth - this.startingX) ? this.maxTableWidth : (this.pageWidth - this.startingX);
     }
 
     get tableHeight() {
-        return this.maxTableWidth && this.maxTableWidth < (this.pageWidth - startingX) ? this.maxTableWidth : (this.pageWidth - startingX);
+        return this.maxTableWidth && this.maxTableWidth < (this.pageHeight - this.startingY) ? this.maxTableWidth : (this.pageWidth - this.startingX);
     }
 
     get docStartingY() {
@@ -423,27 +349,51 @@ export class Header {
     constructor(
         page, 
         columns,
+        headerData,
         columenIds, 
         headers,
         columnWidths, 
         startingX, 
         startingY,
-        headerFont, 
-        headerTextSize, 
+        headerHeight,
+        autoHeaderHeight,
+        headerBackgroundColor,
+        headerWrapText,
+        headerFont,
+        headerTextSize,
         headerLineHeight,
-        headerWrapText
+        headerTextColor,
+        headerTextAlignment,
+        headerDividedX,
+        headerDividedY,
+        headerDividedXColor,
+        headerDividedYColor,
+        headerDividedXThickness,
+        headerDividedYThickness
     ){
         this.tablePage = page,
         this.columns = columns,
+        this.headerData = headerData,
         this.columenIds = columenIds,
         this.headers = headers,
         this.columnWidths = columnWidths,
         this.startingX = startingX,
         this.startingY = startingY,
+        this.headerSectionHeight = headerHeight ? headerHeight : autoHeaderHeight,
+        //this.autoHeaderHeight = autoHeaderHeight,
+        this.headerBackgroundColor = headerBackgroundColor,
+        this.headerWrapText = headerWrapText,
         this.headerFont = headerFont,
         this.headerTextSize = headerTextSize,
         this.headerLineHeight = headerLineHeight,
-        this.headerWrapText = headerWrapText
+        this.headerTextColor = headerTextColor,
+        this.headerTextAlignment = headerTextAlignment,
+        this.headerDividedX = headerDividedX,
+        this.headerDividedY = headerDividedY,
+        this.headerDividedXColor = headerDividedXColor,
+        this.headerDividedYColor = headerDividedYColor,
+        this.headerDividedXThickness = headerDividedXThickness,
+        this.headerDividedYThickness = headerDividedYThickness
     }
 
     get page() {
@@ -458,27 +408,77 @@ export class Header {
         return this.pdfPage.getHeight();
     };
 
-    get headerHeight() {
-        return this.headerLineHeight
+    drawHeader(tableWidth) {
+        this.drawHeadings();
+        this.drawFill(tableWidth);
+        this.drawDividerX(tableWidth);
+        this.drawDividerY();
     };
 
-    drawHeader() {
-        
+    drawHeadings() {
         let horizontalCursor = 0;
-        this.columns.forEach((header) => {
+        this.headerData.forEach((header) => {
+
             
-            this.tablePage.page.drawText(header.header, {
-                x: this.startingX + horizontalCursor,
-                y: this.startingY - this.headerTextSize,
-                size: this.headerTextSize,
-                font: this.headerFont,
-                color: this.headerTextColor,
-                lineHeight: this.headerTextSize
+            header.values.forEach((textLines, i) => {
+                
+                const alignment = this.headerTextAlignment === 'center' ? 
+                (this.columnWidths[header.colID] - getTextWidth(this.headerFont, this.headerTextSize, textLines)) / 2 : 
+                this.headerTextAlignment === 'right' ?  this.columnWidths[header.colID] - getTextWidth(this.headerFont, this.headerTextSize, textLines) : 
+                0
+
+                this.tablePage.drawText(textLines, {
+                    x: this.startingX + alignment + horizontalCursor,
+                    y: this.startingY - this.headerLineHeight - (this.headerLineHeight * i),
+                    size: this.headerTextSize,
+                    font: this.headerFont,
+                    color: this.headerTextColor,
+                    lineHeight: this.headerTextSize
+                });
+            })
+            horizontalCursor += this.columnWidths[header.colID];
+        });
+    }
+
+    drawFill(tableWidth) {
+        this.tablePage.drawRectangle({
+            x: this.startingX,
+            y: this.startingY - this.headerSectionHeight, //Math.max(headerHeight, headerFullTextHeight),
+            width: tableWidth,
+            height: this.headerSectionHeight, //Math.max(headerHeight, headerFullTextHeight),
+            borderWidth: 0,
+            color: this.headerBackgroundColor,
+            opacity: 0.25
+        });
+    }
+
+    drawDividerX(tableWidth) {
+        this.tablePage.drawLine({
+            start: { x: this.startingX, y: this.startingY - this.headerSectionHeight}, //- Math.max(headerHeight, headerFullTextHeight) },
+            end: { x: this.startingX + tableWidth, y: this.startingY - this.headerSectionHeight}, // - Math.max(headerHeight, headerFullTextHeight) },
+            thickness: this.headerDividedXThickness,
+            color: this.headerDividedXColor,
+            opacity: 1,
+        });
+    }
+    
+    drawDividerY() {
+        let counter = 0
+        Object.keys(this.columnWidths).forEach((col, i) => {
+            const dividerX = i == 0 ? this.columnWidths[col] : this.columnWidths[col] + counter;
+
+            this.tablePage.drawLine({
+                start: { x: dividerX, y: this.startingY },
+                end: { x: dividerX, y: this.startingY - this.headerSectionHeight}, //Math.max(headerHeight, headerFullTextHeight) },
+                thickness: this.headerDividedYThickness,
+                color: this.headerDividedYColor,
+                opacity: 0.75,
             });
 
-            horizontalCursor += this.columnWidths[header.columnId];
-        });
-    };
+            counter += this.columnWidths[col];
+        })
+    }
+
 };
 
 export class Column {
