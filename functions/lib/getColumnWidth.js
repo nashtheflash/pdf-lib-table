@@ -30,32 +30,46 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
 
     //build the rowdata var out for next step
     columns.forEach(({ columnId }) => rowData = {...rowData, [columnId]: []});
-
     //breakes down all of the strings to words or user specifid brake points
-    data.forEach((row) => {
-        Object.keys(row).forEach((rowVal) => {
-        rowData[rowVal] = [...rowData[rowVal], ...breakWord(row[rowVal].toString(), additionalWrapCharacters)]
-        })
-    });
+    
+    // data.forEach((row) => { removed because below is way faster
+    //     Object.keys(row).forEach((rowVal) => {
+    //         rowData[rowVal] = [...rowData[rowVal], ...breakWord(row[rowVal].toString(), additionalWrapCharacters)]
+    //     })
+    // });
+
+    const keys = Object.keys(data[0]); // Assuming all rows have the same keys
+    for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        for (let j = 0; j < keys.length; j++) {
+            const rowVal = keys[j];
+            const value = row[rowVal];
+            const words = breakWord(value.toString(), additionalWrapCharacters);
+            if (!rowData[rowVal]) {
+                rowData[rowVal] = words;
+            } else {
+                rowData[rowVal].push(...words);
+            }
+        }
+    }
     
     //order items from smalles to largest numbers will go to the front
     Object.keys(rowData).forEach(row => {
         rowData[row].sort((a,b) => a.length > b.length ? 1 : -1);
     });
-
+    
     //gets the minumum width for the column
     Object.keys(rowData).forEach((row) => {
         const columnHeader = columns.find((col) => col.columnId == row).header;
         const longestColumnItem = rowData[row][rowData[row].length -1];
-
+        
         rowData[row] = Math.max(getTextWidth(headerFont, headerTextSize, columnHeader), getTextWidth(cellFont, cellTextSize, longestColumnItem))
     })
-
+    
     return rowData
 };
 
 export const breakWord = (word, char) => {
-
     let words = word.split(' ');
 
     if(char && char.length !== 0) {

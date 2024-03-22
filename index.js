@@ -122,10 +122,17 @@ export async function drawTable({
         pageDimensions
     );
 
+    const columnWidths = docData.tableColumnWidths();
+    const dataProcessor = docData.dataProcessor(columnWidths);
+    const totalPages = dataProcessor.pages;
+    console.log(totalPages)
     //print the rows on each page...
-    for (let loop = 0; loop <= docData.docPages(); loop++){
+
+    console.log(dataProcessor);
+    for (let loop = 0; loop <= totalPages; loop++){
         if(loop === 0) {
-            const tableData = docData.dataProcessor(loop);
+
+            const tableData = dataProcessor.data.filter(row => row[0].page === loop);
             
             const table = new Table(
                 doc.documentPages[loop],
@@ -159,7 +166,7 @@ export async function drawTable({
                 columns, 
                 table.columnIds,
                 table.headers,
-                docData.tableColumnWidths(), 
+                columnWidths, 
                 table.startingX, 
                 table.startingY,
                 headerFont, 
@@ -181,7 +188,8 @@ export async function drawTable({
 
         } else if(loop !== 0) {
             const newDoc = doc.addPage();
-            const tableData = docData.dataProcessor(loop);
+            
+            const tableData = dataProcessor.data.filter(row => row[0].page === loop);
 
             const table = new Table(
                 newDoc,
@@ -213,7 +221,7 @@ export async function drawTable({
                 columns, 
                 table.columnIds,
                 table.headers,
-                docData.tableColumnWidths(), 
+                columnWidths, 
                 table.startingX, 
                 table.startingY,
                 headerFont, 
