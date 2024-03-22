@@ -55,7 +55,7 @@ export class Data {
                 acc.tableHeight = 0;
             }
             return acc;
-        }, { pages: 0, tableHeight: 0 }).pages;
+        }, { pages: 1, tableHeight: 0 }).pages;
 
 
         return pages;
@@ -98,57 +98,130 @@ export class Data {
         return finalSizing;
     };
 
+    // tableCells() {
+    //     const columnWidths = this.tableColumnWidths();
+    //     const rowMaster = [];
+    
+    //     this.data.forEach((row, index) => {
+    //         let newRow = []
+    //         let xCounter = this.startingX
+    //         Object.keys(row).forEach((col) => {
+    //             const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
+               
+    //             newRow = [
+    //                 ... newRow, 
+    //                 {
+    //                     colID: col, 
+    //                     rowId: index,
+    //                     startingX: xCounter, //can probably get this later in from the column class
+    //                     //startingY: this.startingY, //couls mabe get this later from the row class
+    //                     font: this.cellFont, 
+    //                     textHeight: this.cellTextSize, 
+    //                     lineHeight: this.cellLineHeight,
+    //                     CellHeight: this.cellLineHeight * cellValues.length,
+    //                     values: [...cellValues]
+    //                 }
+    //             ]
+    //             xCounter += columnWidths[col];
+    //         });
+            
+    //         rowMaster.push(newRow);
+    //         xCounter = 0;
+    //     })
+    
+    //     return rowMaster
+    // }
+
+    // tableRows() {
+    //     const columnWidths = this.tableColumnWidths();
+        
+    //     let newData = [...this.data];
+    
+    //     newData.forEach((row, index) => {
+    //         const longestItem = Object.keys(row).reduce((longest, col) => {
+    //             const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
+    //             return wrappedText.length > longest.length ? wrappedText : longest;
+    //         }, []);
+    
+    //         newData[index] = {
+    //             rowHeight: longestItem.length * this.cellLineHeight
+    //         }
+    //     });
+    //     return newData;
+    // }
+
+    
+
     tableCells() {
         const columnWidths = this.tableColumnWidths();
-        const rowMaster = [];
     
-        this.data.forEach((row, index) => {
-            let newRow = []
-            let xCounter = this.startingX
-            Object.keys(row).forEach((col) => {
+        return this.data.map((row, rowIndex) => {
+            let xCounter = this.startingX;
+            return Object.keys(row).map(col => {
                 const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
-               
-                newRow = [
-                    ... newRow, 
-                    {
-                        colID: col, 
-                        rowId: index,
-                        startingX: xCounter, //can probably get this later in from the column class
-                        //startingY: this.startingY, //couls mabe get this later from the row class
-                        font: this.cellFont, 
-                        textHeight: this.cellTextSize, 
-                        lineHeight: this.cellLineHeight,
-                        CellHeight: this.cellLineHeight * cellValues.length,
-                        values: [...cellValues]
-                    }
-                ]
+                const cell = {
+                    colID: col,
+                    rowId: rowIndex,
+                    startingX: xCounter,
+                    font: this.cellFont,
+                    textHeight: this.cellTextSize,
+                    lineHeight: this.cellLineHeight,
+                    cellHeight: this.cellLineHeight * cellValues.length,
+                    values: [...cellValues]
+                };
                 xCounter += columnWidths[col];
+                return cell;
             });
-            
-            rowMaster.push(newRow);
-            xCounter = 0;
-        })
-    
-        return rowMaster
+        });
     }
-
+    
     tableRows() {
         const columnWidths = this.tableColumnWidths();
-        
-        let newData = [...this.data];
     
-        newData.forEach((row, index) => {
+        return this.data.map(row => {
             const longestItem = Object.keys(row).reduce((longest, col) => {
                 const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
                 return wrappedText.length > longest.length ? wrappedText : longest;
             }, []);
-    
-            newData[index] = {
+            return {
                 rowHeight: longestItem.length * this.cellLineHeight
-            }
+            };
         });
-        return newData;
     }
+    
+    // dataProcessor(page) {
+    //     const rowHeights = this.tableRows();
+    //     const cells = this.tableCells();
+    
+    //     let counter = 0;
+    //     let pageCount = 0;
+    //     const pageHeight = this.pageDimensions[1];
+    
+    //     const modifiedRows = cells.map(row => {
+    //         const currentRowHeight = row[0].rowHeight;
+    //         console.log(row)
+    
+    //         if (pageCount === 0 && counter + this.tableHeader() + currentRowHeight > this.startingY) {
+    //             pageCount++;
+    //             counter = 0;
+    //         } else if (pageCount !== 0 && counter + this.tableHeader() + currentRowHeight > pageHeight) {
+    //             pageCount++;
+    //             counter = 0;
+    //         }
+    
+    //         //console.log(this.startingY, this.tableHeader(), this.cellLineHeight, counter)
+    //         const modifiedRow = row.map(cell => ({
+    //             ...cell,
+    //             page: pageCount,
+    //             startingY: (this.startingY - this.tableHeader()) - this.cellLineHeight - counter
+    //         }));
+    
+    //         counter += currentRowHeight;
+    //         return modifiedRow;
+    //     });
+    
+    //     return modifiedRows.filter(row => row[0].page === page);
+    // }
 
     dataProcessor(page) {
         const rHeight = this.tableRows();
@@ -160,32 +233,33 @@ export class Data {
            })
         });
 
-        //const totalSpace = this.startingY + (this.docPages() - 1 * this.pageDimensions[0]);
         const pageHeight = this.pageDimensions[1];
 
         let counter = 0;
-        for (let loop = 0; loop < modifiedRows.length; loop++) {
+        let pageCount = 0;
+
+        modifiedRows.forEach((row, i) => {
+            const curentRowHeight = row[0].rowHeight;
+
+            if (pageCount === 0 && counter + this.tableHeader() + curentRowHeight > this.startingY) {
+                pageCount++;
+                counter = 0;
+            }
             
-            const curentRowHeight = modifiedRows[loop][0].rowHeight;
-            const page = Math.ceil((counter + curentRowHeight + this.tableHeader() - this.startingY) / pageHeight);
-
-
-            if(curentRowHeight + counter < this.startingY){
-                //page1
-                const mod = modifiedRows[loop].map(cell => ({...cell, page: 0, startingY: (this.startingY - this.tableHeader()) - this.cellLineHeight - counter}))
-                modifiedRows[loop] = mod;
-
-            } else if(curentRowHeight + counter >= this.appendedPageStartY && page !== 0) {
-                const totalTableHeaderSpace = page * this.tableHeader();
-                const totalappendedpages = ((page - 1) * this.appendedPageStartY)
-                const adjustedCounter = (counter - (this.startingY + totalappendedpages) + totalTableHeaderSpace);
-
-                const mod = modifiedRows[loop].map(cell => ({...cell, page, startingY: (this.appendedPageStartY - this.tableHeader() - this.cellLineHeight) - adjustedCounter}))
-                modifiedRows[loop] = mod;
+            if (pageCount !== 0 && counter + this.tableHeader() + curentRowHeight > pageHeight) {
+                pageCount++;
+                counter = 0;
             }
 
+            const mod = row.map(cell => ({
+                ...cell,
+                page: pageCount,
+                startingY: (this.startingY - this.tableHeader()) - this.cellLineHeight - counter
+            }));
+
+            modifiedRows[i] = mod;
             counter += curentRowHeight;
-        };
+        });
 
         const rowsByPage = modifiedRows.filter(row => row[0].page === page);
 
