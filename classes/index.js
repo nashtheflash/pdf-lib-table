@@ -164,6 +164,7 @@ export class Data {
                 rowHeight: longestItem.length * this.cellLineHeight
             };
         });
+        
         return data;
     }
     
@@ -201,7 +202,7 @@ export class Data {
     //     return modifiedRows.filter(row => row[0].page === page);
     // }
 
-    dataProcessor(columnWidths) {
+    dataProcessor (columnWidths) {
         const rHeight = this.tableRows(columnWidths);
         const rowDetail = [...this.tableCells(columnWidths)];
         const tableHeaderHeight = this.tableHeader(columnWidths);
@@ -547,38 +548,3 @@ export class Cell {
         })
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// //DERIVED
-// totalPages,
-// allPages,
-// pageHeight,
-// pageWidth,
-// numberOfRows,
-// numberOfSubHeadings,
-// availableTableWidth,
-// availableTableHeight,
-// headerLengths,
-// longestRowItem,
-// manualColumnWidths,
-// columnWidths,
-// headerTextRows,
-// headerFullTextHeight,
-// rowSectionStartingY,
-// rowMeasurments
