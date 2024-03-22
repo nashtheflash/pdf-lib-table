@@ -30,8 +30,6 @@ export const tableCells = (data, columns, columnWidths, startingX, startingY, ma
         
         rowMaster.push(newRow)
     })
-
-    //console.log(rowMaster);
 }
 
 

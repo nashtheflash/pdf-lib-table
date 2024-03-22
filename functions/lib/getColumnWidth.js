@@ -25,7 +25,7 @@ export const spaceColumns = (minColumnWidth, columns, tableWidth) => {
     return finalSizing;
 };
 
-export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, additionalWrapCharacters) => {
+export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerFont, headerTextSize, additionalWrapCharacters) => {
     let rowData = {};
 
     //build the rowdata var out for next step
@@ -37,20 +37,18 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, additio
         rowData[rowVal] = [...rowData[rowVal], ...breakWord(row[rowVal].toString(), additionalWrapCharacters)]
         })
     });
-        
-    //order items from smalles to largest numbers will go the the front
+    
+    //order items from smalles to largest numbers will go to the front
     Object.keys(rowData).forEach(row => {
-        rowData[row].sort((a,b) => a.length > b.length || typeof a !== 'number' ? 1 : -1);
+        rowData[row].sort((a,b) => a.length > b.length ? 1 : -1);
     });
 
-    //gets the largest and smallest item
-    Object.keys(rowData).forEach(row => {
-        rowData[row] = [rowData[row].shift(), rowData[row].pop()]
-    })
-
     //gets the minumum width for the column
-    Object.keys(rowData).forEach(row => {
-        rowData[row] = Math.max(getTextWidth(cellFont, cellTextSize, rowData[row][0]), getTextWidth(cellFont, cellTextSize, rowData[row][1]))
+    Object.keys(rowData).forEach((row) => {
+        const columnHeader = columns.find((col) => col.columnId == row).header;
+        const longestColumnItem = rowData[row][rowData[row].length -1];
+
+        rowData[row] = Math.max(getTextWidth(headerFont, headerTextSize, columnHeader), getTextWidth(cellFont, cellTextSize, longestColumnItem))
     })
 
     return rowData

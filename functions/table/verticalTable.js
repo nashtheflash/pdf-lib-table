@@ -8,11 +8,9 @@ export const drawVerticalTable = (tableProps) => {
 
     //TODO: need to get the rows to print on each page
 
-    //console.log(availableTableHeight, startingY, availableTableHeight - startingY);
-    //console.log(continuationFillerHeight);
+    
     const overflow = availableTableHeight - (startingY - continuationFillerHeight);
     const pageOneTableHeight = overflow < 0 ? availableTableHeight : availableTableHeight - overflow;
-    //console.log(overflow, pOneTableHeight);
 
     const pageRows = seperateData(rowMeasurments, overflow, pageOneTableHeight, totalPages, data, continuationFillerHeight, allPages);
     
@@ -48,7 +46,6 @@ const seperateData = (rowMeasurments, overflow, pageOneTableHeight, totalPages, 
     for (let loop = 0; loop < rowMeasurments.length; loop++) {
         const rowHeight = rowMeasurments[loop].rowHeight;
         
-        console.log(pageTableHeight + rowHeight, pageOneTableHeight);
 
         if((pageTableHeight + rowHeight < pageOneTableHeight) || (pageNum > 0 && pageTableHeight + rowHeight < allPages[pageNum].getHeight())) {
             dataarr[pageNum].push(data[loop]);
@@ -60,8 +57,6 @@ const seperateData = (rowMeasurments, overflow, pageOneTableHeight, totalPages, 
         }
 
     };
-
-    console.log(dataarr);
     pageNum = 0;
     return dataarr;
 

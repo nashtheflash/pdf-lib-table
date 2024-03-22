@@ -7,6 +7,8 @@ export class Data {
         columns,
         startingX,
         startingY,
+        appendedPageStartX,
+        appendedPageStartY,
         headerHeight, 
         headerFont, 
         headerTextSize, 
@@ -30,6 +32,8 @@ export class Data {
         this.headerWrapText = headerWrapText,            
         this.startingX = startingX,
         this.startingY  = startingY,
+        this.appendedPageStartX = appendedPageStartX,
+        this.appendedPageStartY = appendedPageStartY,
         this.cellFont  = cellFont,
         this.cellTextSize  = cellTextSize,
         this.cellLineHeight  = cellLineHeight,
@@ -43,7 +47,7 @@ export class Data {
         const rowHeights = this.tableRows();
 
         const pages = rowHeights.reduce((acc, row, i) => {
-            const currentPageHeight = acc.pages === 0 ? this.startingY : this.pageDimensions[1];
+            const currentPageHeight = acc.pages === 0 ? this.startingY : this.pageDimensions[0];
             if (row.rowHeight + acc.tableHeight < currentPageHeight) {
                 acc.tableHeight += row.rowHeight;
             } else {
@@ -73,42 +77,22 @@ export class Data {
         return headerCalcHeight;
     }
 
-    tableRows() {
-        const columnWidths = this.tableColumnWidths();
+    dataWithHeaders() {
+        const fulldata = [...this.data];
+
+        const headerRow = this.columns.reduce((acc, { columnId }) => {
+            return { ...acc, [columnId]: columnId };
+        }, {});
         
-        let newData = [...this.data];
-        let availPageheight = this.tableHeader() - this.startingY;
-    
-        newData.forEach((row, index) => {
-            const longestItem = Object.keys(row).reduce((longest, col) => {
-                const columnWidth = columnWidths[col];
-                const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidth, row[col], this.additionalWrapCharacters);
-                return wrappedText.length > longest.length ? wrappedText : longest;
-            }, []);
-    
-            let rowSpaceAbove = 0;
-            if (index !== 0) {
-                for (let loop = 0; loop < index; loop ++) {
-                    rowSpaceAbove += newData[loop].rowHeight
-                };
-            } else {
-                availPageheight -= longestItem.length * this.cellLineHeight
-            }
-    
-            newData[index] = {
-                //...newData[index], 
-                // rowStartingY: startingY - rowSpaceAbove,
-                // rowsAbove: index,
-                // rowSpaceAbove,
-                rowHeight: longestItem.length * this.cellLineHeight
-            }
-        });
-        return newData;
+        fulldata.unshift(headerRow);
+
+        return fulldata;
     }
+
 
     tableColumnWidths() {
         //this should be the min column width by column
-        const minColumnWidth = getMinColumnWidth(this.data, this.columns, this.cellFont, this.cellTextSize, this.additionalWrapCharacters);
+        const minColumnWidth = getMinColumnWidth(this.data, this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters);
         const tableWidth = this.maxTableWidth && this.maxTableWidth < (this.pageWidth - this.startingX) ? this.maxTableWidth : (this.pageWidth - this.startingX);
         const finalSizing = spaceColumns(minColumnWidth, this.columns, tableWidth);
         return finalSizing;
@@ -120,30 +104,95 @@ export class Data {
     
         this.data.forEach((row, index) => {
             let newRow = []
-    
+            let xCounter = this.startingX
             Object.keys(row).forEach((col) => {
-                const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[row], row[col], this.additionalWrapCharacters);
+                const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
+               
                 newRow = [
                     ... newRow, 
                     {
                         colID: col, 
                         rowId: index,
-                        startingX: this.startingX, //can probably get this later in from the column class
-                        startingY: this.startingX, //couls mabe get this later from the row class
+                        startingX: xCounter, //can probably get this later in from the column class
+                        //startingY: this.startingY, //couls mabe get this later from the row class
                         font: this.cellFont, 
                         textHeight: this.cellTextSize, 
                         lineHeight: this.cellLineHeight,
                         CellHeight: this.cellLineHeight * cellValues.length,
-                        values: cellValues
+                        values: [...cellValues]
                     }
                 ]
+                xCounter += columnWidths[col];
             });
             
-            rowMaster.push(newRow)
+            rowMaster.push(newRow);
+            xCounter = 0;
         })
     
         return rowMaster
     }
+
+    tableRows() {
+        const columnWidths = this.tableColumnWidths();
+        
+        let newData = [...this.data];
+    
+        newData.forEach((row, index) => {
+            const longestItem = Object.keys(row).reduce((longest, col) => {
+                const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
+                return wrappedText.length > longest.length ? wrappedText : longest;
+            }, []);
+    
+            newData[index] = {
+                rowHeight: longestItem.length * this.cellLineHeight
+            }
+        });
+        return newData;
+    }
+
+    dataProcessor(page) {
+        const rHeight = this.tableRows();
+        const rowDetail = [...this.tableCells()];
+
+        const modifiedRows = rowDetail.map((row, index) => {
+           return row.map(c => {
+            return {...c, rowHeight: rHeight[c.rowId].rowHeight}
+           })
+        });
+
+        //const totalSpace = this.startingY + (this.docPages() - 1 * this.pageDimensions[0]);
+        const pageHeight = this.pageDimensions[1];
+
+        let counter = 0;
+        for (let loop = 0; loop < modifiedRows.length; loop++) {
+            
+            const curentRowHeight = modifiedRows[loop][0].rowHeight;
+            const page = Math.ceil((counter + curentRowHeight + this.tableHeader() - this.startingY) / pageHeight);
+
+
+            if(curentRowHeight + counter < this.startingY){
+                //page1
+                const mod = modifiedRows[loop].map(cell => ({...cell, page: 0, startingY: (this.startingY - this.tableHeader()) - this.cellLineHeight - counter}))
+                modifiedRows[loop] = mod;
+
+            } else if(curentRowHeight + counter >= this.appendedPageStartY && page !== 0) {
+                const totalTableHeaderSpace = page * this.tableHeader();
+                const totalappendedpages = ((page - 1) * this.appendedPageStartY)
+                const adjustedCounter = (counter - (this.startingY + totalappendedpages) + totalTableHeaderSpace);
+
+                const mod = modifiedRows[loop].map(cell => ({...cell, page, startingY: (this.appendedPageStartY - this.tableHeader() - this.cellLineHeight) - adjustedCounter}))
+                modifiedRows[loop] = mod;
+            }
+
+            counter += curentRowHeight;
+        };
+
+        const rowsByPage = modifiedRows.filter(row => row[0].page === page);
+
+        return rowsByPage;
+
+    }
+        
 }
 
 
@@ -152,12 +201,16 @@ export class Document {
     (
         page,
         pdfDoc,
+        startingX,
+        startingY,
         //StandardFonts,
         pageDimensions,
     ){
         this.page = page,
         this.pdfDoc = pdfDoc,
-        this.pages = [new Page(page)],
+        this.startingX = startingX,
+        this.startingY = startingY,
+        this.pages = [new Page(page, [page.getHeight(), page.getWidth()], 'original', {startingX: this.startingX, startingY: this.startingY})],
         //this.StandardFonts = StandardFonts
         this.pageDimensions = pageDimensions
     }
@@ -175,7 +228,7 @@ export class Document {
     }
 
     addPage() {
-        const pg = new Page(this.pdfDoc.addPage(this.pageDimensions))
+        const pg = new Page(this.pdfDoc.addPage(this.pageDimensions, this.pageDimensions, 'app'))
         this.pages.push(pg);
         return pg;
     }
@@ -186,8 +239,12 @@ export class Document {
 }
 
 export class Page {
-    constructor(pdfPage){
-        this.pdfPage = pdfPage
+    constructor(pdfPage, pageDimensions, type, {startingX, startingY} = {}){
+        this.pdfPage = pdfPage,
+        this.pageDimensions = pageDimensions,
+        this.type = type,
+        this.startingX = startingX, 
+        this.startingY = startingY
     }
 
     get page() {
@@ -201,6 +258,17 @@ export class Page {
     get pageHeight() {
         return this.pdfPage.getHeight();
     };
+
+    get availTableHeight() {
+        if(this.type === 'original') return this.startingY;
+        return this.pageDimensions[0]
+    }
+
+    get availTableWidth() {
+        if(this.type === 'original') return this.startingX;
+        return this.pageDimensions[1]
+
+    }
 }
 
 export class Table extends Page {
@@ -275,6 +343,19 @@ export class Table extends Page {
     get tableHeight() {
         return this.maxTableWidth && this.maxTableWidth < (this.pageWidth - startingX) ? this.maxTableWidth : (this.pageWidth - startingX);
     }
+
+    get docStartingY() {
+        return this.startingY
+    }
+
+    get rows() {
+        const rows = [];
+
+        this.data.forEach(row => rows.push(new Row(row)))
+        
+        return rows
+    }
+     
         
 
     getPageHeight() {
@@ -323,6 +404,10 @@ export class Header {
 
     get pageHeight() {
         return this.pdfPage.getHeight();
+    };
+
+    get headerHeight() {
+        return this.headerLineHeight
     };
 
     drawHeader() {
@@ -374,95 +459,42 @@ export class Column {
 
 export class Row {
     constructor(
-        page, 
-        columns,
-        columenIds, 
-        headers,
-        columnWidths, 
-        startingX, 
-        startingY,
-        cellFont, 
-        cellTextSize, 
-        cellLineHeight,
-        headerWrapText,
-        tableCells,
-        rows
+        rowData
     ){
-        this.page = page,
-        this.columns = columns,
-        this.columenIds = columenIds,
-        this.headers = headers,
-        this.columnWidths = columnWidths,
-        this.startingX = startingX,
-        this.startingY = startingY,
-        this.cellFont = cellFont,
-        this.cellTextSize = cellTextSize,
-        this.cellLineHeight = cellLineHeight,
-        this.headerWrapText = headerWrapText,
-        this.tableCells = tableCells,
-        this.rows = rows
+        this.rowData = rowData
     }
-    
-    drawRow() {
+
+    get cells() {
+        const cells = [];
+        this.rowData.forEach(cell => cells.push(new Cell(cell)))
         
-        let horizontalCursor = 0;
-
-        console.log(this.rows);
-
-        this.tableCells.forEach((row, i) => {
-            if(i === 0) return;//skip the header row
-
-           row.forEach((cell) => {
-                console.log(cell)
-                cell.values.forEach((text) => {
-                    this.page.page.drawText(text, {
-                        x: this.startingX + horizontalCursor,
-                        // y: this.startingY - this.headerTextSize,
-                        y: 590,
-                        size: this.cellTextSize,
-                        font: this.cellFont,
-                        color: this.headerTextColor,
-                        lineHeight: this.cellTextSize
-                    });
-                })
-                horizontalCursor += this.columnWidths[cell.colID];
-           })
-           //horizontalCursor = 0;
-        })
-
-        // this.columns.forEach((header) => {
-            
-        //     this.page.page.drawText(header.header, {
-        //         x: this.startingX + horizontalCursor,
-        //         // y: this.startingY - this.headerTextSize,
-        //         y: 200,
-        //         size: this.cellTextSize,
-        //         font: this.cellFont,
-        //         color: this.headerTextColor,
-        //         lineHeight: this.cellTextSize
-        //     });
-
-        //     horizontalCursor += this.columnWidths[header.columnId];
-        // });
-    };
+        return cells
+    }
 }
 
-export class Cells extends Column {
-    // constructor(pdfPage){
-    //     this.pdfPage = pdfPage
-    // }
+export class Cell {
+    constructor(celldata){
+        this.data = celldata
+    }
 
-    // get page() {
-    //     return this.pdfPage
-    // }
+    get cell() {
+        return this.data
+    }
 
-    // get width() {
-    //     return this.pdfPage.getWidth();
-    // };
+    drawCell(page) {
 
-    // get height() {
-    //     return this.pdfPage.getHeight();
-    // };
+        const {values, startingX, startingY, textHeight, cellFont, lineHeight } = this.data;
+
+        values.forEach((text, i) => {
+            page.page.drawText(text, {
+                x: startingX,
+                y: startingY - (lineHeight * i),
+                size: textHeight,
+                font: cellFont,
+                lineHeight: lineHeight
+            });
+        })
+    }
 }
 
 

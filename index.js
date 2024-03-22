@@ -28,7 +28,7 @@ export async function drawTable({
     columns, // Required - No Default - column definitions
     pageDimensions=[792.0, 612.0],
     appendedPageStartX=0,
-    appendedPageStartY=0,
+    appendedPageStartY=612,
     //TABLE SETTINGS
     startingX=0, // Default 0 - Default 0 - the starting x coordinate
     startingY=612, // Default 0 - the starting y coordinate
@@ -83,25 +83,21 @@ export async function drawTable({
     //cellPaddingBottom=0,
 } = {}) {
 
-    const headerRow = columns.reduce((acc, { columnId }) => {
-        return { ...acc, [columnId]: columnId };
-    }, {});
-    data.unshift(headerRow);
-
     //columns widths
-    const columnWidths = tableColumnWidths(data, columns, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, additionalWrapCharacters); // {colID: width} thats it all logic needs to live here.
-    const rows = tableRows(data, columns, columnWidths, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, cellLineHeight, additionalWrapCharacters, headerHeight);//wrap the text and define where the text will print on the page; row -> [{colID, startingX, startingY, font, rowHeight, textHeight, values: [line1 of text, line 2 of text]}]
-    const cells = tableCells(data, columns, columnWidths, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, cellLineHeight, additionalWrapCharacters);//wrap the text and define where the text will print on the page; row -> [{colID, startingX, startingY, font, rowHeight, textHeight, values: [line1 of text, line 2 of text]}]
-    //number & height of rows and which page the row will print on; from above [[rows], [rows]]
+    // const columnWidths = tableColumnWidths(data, columns, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, additionalWrapCharacters); // {colID: width} thats it all logic needs to live here.
+    // const rows = tableRows(data, columns, columnWidths, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, cellLineHeight, additionalWrapCharacters, headerHeight);//wrap the text and define where the text will print on the page; row -> [{colID, startingX, startingY, font, rowHeight, textHeight, values: [line1 of text, line 2 of text]}]
+    // const cells = tableCells(data, columns, columnWidths, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, cellLineHeight, additionalWrapCharacters);//wrap the text and define where the text will print on the page; row -> [{colID, startingX, startingY, font, rowHeight, textHeight, values: [line1 of text, line 2 of text]}]
+    // //number & height of rows and which page the row will print on; from above [[rows], [rows]]
 
-    //console.log(rows);
+
 
     // headerHeight headerFont, headerTextSize, headerWrapText
-
     
     const doc = new Document(
         page,
         pdfDoc,
+        startingX,
+        startingY,
         pageDimensions,
     );
 
@@ -110,6 +106,8 @@ export async function drawTable({
         columns,
         startingX,
         startingY,
+        appendedPageStartX,
+        appendedPageStartY,
         headerHeight, 
         headerFont, 
         headerTextSize, 
@@ -124,11 +122,14 @@ export async function drawTable({
         pageDimensions
     );
 
+    //print the rows on each page...
     for (let loop = 0; loop <= docData.docPages(); loop++){
         if(loop === 0) {
+            const tableData = docData.dataProcessor(loop);
+            
             const table = new Table(
-                doc.documentPages[0],
-                data,
+                doc.documentPages[loop],
+                tableData,
                 columns,
                 startingX,
                 startingY,
@@ -151,12 +152,12 @@ export async function drawTable({
                 continuationFillerHeight,
             );
 
-            //console.log(table.columnIds);
+            
 
             const header = new Header(
                 table.docPage,
                 columns, 
-                table.columnIds, 
+                table.columnIds,
                 table.headers,
                 docData.tableColumnWidths(), 
                 table.startingX, 
@@ -167,34 +168,27 @@ export async function drawTable({
                 headerWrapText
             );
 
-            const row = new Row(
-                table.docPage,
-                columns,
-                table.columnIds, 
-                table.headers,
-                docData.tableColumnWidths(), 
-                table.startingX, 
-                table.startingY,
-                cellFont, 
-                cellTextSize, 
-                cellLineHeight,
-                headerWrapText,
-                docData.tableCells(),
-                docData.tableRows()
-            );
-
             header.drawHeader();
-            row.drawRow();
+
+            table.rows.forEach((row) => {
+                row.cells.forEach((cell) => {
+                    cell.drawCell(doc.documentPages[loop]);
+                })
+            })
+
+            
+
 
         } else if(loop !== 0) {
             const newDoc = doc.addPage();
+            const tableData = docData.dataProcessor(loop);
 
             const table = new Table(
-                newDoc.page,
-                data,
+                newDoc,
+                tableData,
                 columns,
-                startingX,
-                startingY,
+                appendedPageStartX,
+                appendedPageStartY,
                 tableType,
                 dividedX,
                 dividedY,
@@ -213,41 +207,31 @@ export async function drawTable({
                 //continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
                 continuationFillerHeight,
             );
+
+            const header = new Header(
+                table.docPage,
+                columns, 
+                table.columnIds,
+                table.headers,
+                docData.tableColumnWidths(), 
+                table.startingX, 
+                table.startingY,
+                headerFont, 
+                headerTextSize, 
+                headerLineHeight,
+                headerWrapText
+            );
+
+            header.drawHeader();
+
+            table.rows.forEach((row) => {
+                row.cells.forEach((cell) => {
+                    cell.drawCell(doc.documentPages[loop]);
+                })
+            })
+
         }
     };
-
-
-
-
-    
-
-
-
-
-
-
-
-
-    // const pg = new Page(doc.documentPages[0]);
-
-    // const pageRef = doc.addPage();
-    // const p2 = new Page(doc.documentPages[pageRef]);
-
-    //console.log(table.columnInfo);
-
-
-
-    
-    
-    // console.log(doc.width);
-    // console.log('pages:', doc.pages.length);
-    // doc.addPage([792.0, 612.0]);
-    // doc.addPage([792.0, 612.0]);
-    // doc.addPage([792.0, 612.0]);
-    // console.log('pages:', doc.pages.length);
-    
-    
-    
     
     
     
@@ -332,7 +316,6 @@ export async function drawTable({
 
     // ///ROWS
     // const rowMeasurments = getRowMeasurments(data, startingY, cellFont, cellTextSize, columnWidths, rowSectionStartingY);
-    // //console.log(rowMeasurments);
 
     
     

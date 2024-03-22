@@ -175,8 +175,6 @@ export const getColumnWidths = ({
         removeFromBiggerRow = longestRowItem[column].min - columSizing[column]
         columSizing[column] = longestRowItem[column].min
       };
-
-      if(longestRowItem[column].min < columSizing[column]) console.log('BAD')
     };
   });
 

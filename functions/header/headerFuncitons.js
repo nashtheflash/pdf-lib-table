@@ -21,9 +21,7 @@ export const getHeaderTextRowsByColumn = ({ headerWrapText, columns, headerFont,
 
     columns.forEach((column) => {
         const rows = getWrapedText(headerFont, headerTextSize, columnWidths[column.columnId], column.header).length
-        // console.log(rows);
         const rowsActual = rows === 0 ? 1 : rows;
-        // console.log(rows);
         columnLines = {...columnLines, [column.columnId]: rowsActual}
     });
 
