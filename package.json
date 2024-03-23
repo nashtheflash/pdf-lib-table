@@ -4,7 +4,8 @@
   "description": "table creation add on for pdf-lib",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "patch-package"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
   "homepage": "https://github.com/nashtheflash/pdf-lib-table#readme",
   "type": "module",
   "dependencies": {
+    "patch-package": "^8.0.0",
     "pdf-lib": "^1.17.1"
   }
 }

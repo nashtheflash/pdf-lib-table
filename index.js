@@ -69,6 +69,7 @@ export async function drawTable({
     headerTextSize=10, // Default 10 - table header text size
     headerLineHeight=10,
     headerTextAlignment='left', // Default 'left' - left/right/center 
+    headerTextJustification='top', //Default 'top' - top/center/bottom
     headerWrapText=false, // Default false - allows text in the header to wrap
     //CELL SETTINGS
     cellFont, // Required -  No Default - any pdflib standard font
@@ -121,9 +122,9 @@ export async function drawTable({
         792.0,
         pageDimensions
     );
-
+    const testFont = await doc.addFont();
     const columnWidths = docData.tableColumnWidths();
-    const dataProcessor = docData.dataProcessor(columnWidths);
+    const dataProcessor = docData.dataProcessor(columnWidths, testFont);
     const totalPages = dataProcessor.pages;
     const headerData = docData.tableHeaders(columnWidths);
     const autoHeaderHeight = docData.tableHeader(columnWidths);
@@ -135,7 +136,8 @@ export async function drawTable({
         if(loop === 0) {
 
             const tableData = dataProcessor.data.filter(row => row[0].page === loop);
-            
+            doc.documentPages[loop].drawRuler();
+
             const table = new Table(
                 doc.documentPages[loop],
                 tableData,
@@ -181,6 +183,7 @@ export async function drawTable({
                 headerLineHeight,
                 headerTextColor,
                 headerTextAlignment,
+                headerTextJustification,
                 headerDividedX,
                 headerDividedY,
                 headerDividedXColor,

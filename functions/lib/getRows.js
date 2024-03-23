@@ -1,3 +1,4 @@
+import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import { breakWord } from "./getColumnWidth";
 import { getTextWidth } from ".";
 
@@ -36,19 +37,18 @@ export const tableRows = (data, columns, columnWidths, startingX, startingY, max
 }
 
 
-export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrapCharacters) => {
+export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrapCharacters, testFont) => {
     const words = breakWord(text.toString(), additionalWrapCharacters)
-
-
 
     let lineBreaks = [];
     let currentLineWidth = 0
-    //Spacing is not handeled well by this built in especially if the text is small. controlling the space size here seem to be the best option. Adjust slowly
     const wordsLength = words.length
 
     for (let loop = 0; loop < wordsLength; loop++) {
-        const currentWordLength = getTextWidth(font, fontSize, words[loop]+' ');
-        //console.log(words[loop], currentWordLength, getTextWidth(font, fontSize, 'ttthis is a Page: 0'))
+        //TODO: PDF-libs text calc does not work. I need to probably fix it. According to this issue,
+        //pdf-lib des not print kerning but the text measure uses kerning. Its really stupid
+        //
+        const currentWordLength = getTextWidth(font, fontSize, words[loop]+' ') + .19;
 
         if (currentWordLength + currentLineWidth >= textAreaSize && words.length !== 0) {
             lineBreaks.push(loop)

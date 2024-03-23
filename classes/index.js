@@ -1,5 +1,6 @@
-import { tableColumnWidths, spaceColumns, getMinColumnWidth, getWrapedText } from "../functions/lib";
-import { getTextWidth } from "../functions/lib";
+import { rgb } from 'pdf-lib';
+import { PDFDocument, StandardFonts, degrees } from 'pdf-lib';
+import { tableColumnWidths, spaceColumns, getMinColumnWidth, getWrapedText, getTextWidth } from "../functions/lib";
 
 export class Data {
     constructor
@@ -77,6 +78,9 @@ export class Data {
             let xCounter = this.startingX;
             return Object.keys(row).map(col => {
                 const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
+
+
+
                 const cell = {
                     colID: col,
                     rowId: rowIndex,
@@ -112,10 +116,10 @@ export class Data {
         });
     }
     
-    tableRows(columnWidths) {
+    tableRows(columnWidths, testFont) {
         const data = this.data.map(row => {
             const longestItem = Object.keys(row).reduce((longest, col) => {
-                const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
+                const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters, testFont);
                 return wrappedText.length > longest.length ? wrappedText : longest;
             }, []);
             return {
@@ -126,8 +130,8 @@ export class Data {
         return data;
     }
 
-    dataProcessor (columnWidths) {
-        const rHeight = this.tableRows(columnWidths);
+    dataProcessor (columnWidths, testFont) {
+        const rHeight = this.tableRows(columnWidths, testFont);
         const rowDetail = [...this.tableCells(columnWidths)];
         const tableHeaderHeight = this.tableHeader(columnWidths);
         
@@ -209,9 +213,10 @@ export class Document {
         return pg;
     }
 
-    // async addFont(font) {
-    //     await this.pdfDoc.embedFont(this.StandardFonts[font])
-    // }
+    async addFont() {
+        console.log(await this.pdfDoc.embedStandardFont(StandardFonts.TimesRoman).widthOfTextAtSize('h', 8))
+        return ;
+    }
 }
 
 export class Page {
@@ -244,6 +249,47 @@ export class Page {
         if(this.type === 'original') return this.startingX;
         return this.pageDimensions[1]
 
+    }
+
+    drawRuler() {
+        const loopLength = this.pdfPage.getWidth();
+        for (let loop = 25; loop <= loopLength; loop += 25) {
+
+            this.pdfPage.drawLine({
+                start: { x: loop, y: 792 },
+                end: { x: loop, y: 590},
+                thickness: 1,
+                color: rgb(.21, .24, .85),
+                opacity: 1,
+            });
+
+            this.pdfPage.drawText(loop.toString(), {
+                x: loop - 9,
+                y: 580,
+                size: 10,
+                color: rgb(.21, .24, .85),
+            });
+
+        }
+
+       const height = this.pdfPage.getHeight();
+        for (let loop = 0; loop < height; loop += 25) {
+    
+            this.pdfPage.drawLine({
+                start: { x: 0, y: loop },
+                end: { x: 20, y: loop},
+                thickness: 1,
+                color: rgb(.21, .24, .85),
+                opacity: 1,
+            });
+    
+            this.pdfPage.drawText(loop.toString(), {
+                x: 25,
+                y: loop,
+                size: 10,
+                color: rgb(.21, .24, .85),
+            });
+        }
     }
 }
 
@@ -364,6 +410,7 @@ export class Header {
         headerLineHeight,
         headerTextColor,
         headerTextAlignment,
+        headerTextJustification,
         headerDividedX,
         headerDividedY,
         headerDividedXColor,
@@ -388,6 +435,7 @@ export class Header {
         this.headerLineHeight = headerLineHeight,
         this.headerTextColor = headerTextColor,
         this.headerTextAlignment = headerTextAlignment,
+        this.headerTextJustification = headerTextJustification,
         this.headerDividedX = headerDividedX,
         this.headerDividedY = headerDividedY,
         this.headerDividedXColor = headerDividedXColor,
@@ -418,8 +466,14 @@ export class Header {
     drawHeadings() {
         let horizontalCursor = 0;
         this.headerData.forEach((header) => {
-
+            const textHeight = header.values.length * this.headerLineHeight;
             
+            const justification = this.headerTextJustification === 'center' ? 
+            (this.headerSectionHeight - textHeight) / 2 :
+            this.headerTextJustification === 'bottom' ? 
+            this.headerSectionHeight - textHeight :
+            0;
+
             header.values.forEach((textLines, i) => {
                 
                 const alignment = this.headerTextAlignment === 'center' ? 
@@ -429,11 +483,11 @@ export class Header {
 
                 this.tablePage.drawText(textLines, {
                     x: this.startingX + alignment + horizontalCursor,
-                    y: this.startingY - this.headerLineHeight - (this.headerLineHeight * i),
+                    y: this.startingY - justification - this.headerLineHeight - (this.headerLineHeight * i),
                     size: this.headerTextSize,
                     font: this.headerFont,
                     color: this.headerTextColor,
-                    lineHeight: this.headerTextSize
+                    lineHeight: this.headerLineHeight
                 });
             })
             horizontalCursor += this.columnWidths[header.colID];

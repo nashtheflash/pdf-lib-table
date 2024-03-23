@@ -6,6 +6,8 @@ export { tableRows, getWrapedText } from "./getRows";
 //gets the width of the text that was passed
 export const getTextWidth = (font, size, text) => font.widthOfTextAtSize(text, size);
 
+
+
 //returns and array of thest to be printed in and cell
 const getWrapedText = (font, fontSize, textAreaSize, text) => {
   const words = text.toString().split(' ').map(word => (word.split('/'))).flat();//TODO: allow user to input there own charicters to split strings on for wraping
@@ -43,6 +45,55 @@ const getWrapedText = (font, fontSize, textAreaSize, text) => {
 
   return lines;
 };
+
+// Recommended on the github but has the same issues as the above...
+// export const fillParagraph = (text, font, fontSize, maxWidth) => {
+//   var paragraphs = text.split('\n');
+//   for (let index = 0; index < paragraphs.length; index++) {
+//       var paragraph = paragraphs[index];
+//       if (font.widthOfTextAtSize(paragraph, fontSize) > maxWidth) {
+//           var words = paragraph.split(' ');
+//           var newParagraph = [];
+//           var i = 0;
+//           newParagraph[i] = [];
+//           for (let k = 0; k < words.length; k++) {
+//               var word = words[k];
+//               newParagraph[i].push(word);
+//               if (font.widthOfTextAtSize(newParagraph[i].join(' '), fontSize) > maxWidth) {
+//                   newParagraph[i].splice(-1); // retira a ultima palavra
+//                   i = i + 1;
+//                   newParagraph[i] = [];
+//                   newParagraph[i].push(word);
+//               }
+//           }
+//           paragraphs[index] = newParagraph.map(p => p.join(' ')).join('\n');
+//       }
+//   }
+//   return paragraphs.join('\n');
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //returns an anrray of column ids
 export const getColumnIds = (columns) => {
