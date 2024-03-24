@@ -138,6 +138,8 @@ export async function drawTable({
         if(loop === 0) {
 
             const tableData = dataProcessor.data.filter(row => row[0].page === loop);
+            const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue[0].rowHeight,0,);
+
             doc.documentPages[loop].drawRuler();
 
             const table = new Table(
@@ -176,6 +178,7 @@ export async function drawTable({
                 additionalWrapCharacters= ['/'],
                 headerHeight,
                 autoHeaderHeight,
+                tableHeight,
             );
 
             
@@ -214,6 +217,7 @@ export async function drawTable({
             table.rows.forEach((row, index) => {
 
                 row.drawRowBackground(index);
+                if(index !== table.rows.length - 1)row.drawDividerX();
 
                 row.cells.forEach((cell) => {
                     cell.drawCell(doc.documentPages[loop]);

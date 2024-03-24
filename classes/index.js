@@ -331,6 +331,7 @@ export class Table {
         additionalWrapCharacters,
         headerHeight,
         autoHeaderHeight,
+        tableHeight
     ){
         //super(page)
         this.page = page.page,
@@ -366,6 +367,7 @@ export class Table {
         this.cellTextColor = cellTextColor,
         this.additionalWrapCharacters = additionalWrapCharacters
         this.headerSectionHeight = headerHeight ? headerHeight : autoHeaderHeight
+        this.currentTableHeight = tableHeight
     }
 
     get docPage() {
@@ -389,7 +391,9 @@ export class Table {
     }
 
     get tableHeight() {
-        return this.maxTableWidth && this.maxTableWidth < (this.pageHeight - this.startingY) ? this.maxTableWidth : (this.pageWidth - this.startingX);
+        //return this.maxTableWidth && this.maxTableWidth < (this.pageHeight - this.startingY) ? this.maxTableWidth : (this.pageWidth - this.startingX);
+        // return this.maxTableWidth && this.currentTableHeight 
+        return this.maxTableWidth && this.currentTableHeight + this.headerSectionHeight
     }
 
     get docStartingY() {
@@ -413,20 +417,8 @@ export class Table {
     getPageWidth() {
         return this.pageWidth;
     }
-
-    // drawDividerX() {
-    //     this.tablePage.drawLine({
-    //         start: { x: this.startingX, y: this.startingY - this.tableHeight}, //- Math.max(headerHeight, headerFullTextHeight) },
-    //         end: { x: this.startingX + this.tableWidth, y: this.startingY - this.tableHeight}, // - Math.max(headerHeight, headerFullTextHeight) },
-    //         thickness: this.headerDividedXThickness,
-    //         color: this.headerDividedXColor,
-    //         opacity: 1,
-    //     });
-    // }
     
     drawDividerY() {
-        console.log(this.startingY, this.additionalWrapCharacters);
-        
         let counter = 0
         Object.keys(this.columnWidths).forEach((col, i) => {
             const dividerX = i == 0 ? this.columnWidths[col] : this.columnWidths[col] + counter;
@@ -657,8 +649,16 @@ export class Row {
             color: index % 2 !== 0 &&  this.alternateRowColor ? this.alternateCellColorValue : this.rowBackgroundColor,
             opacity: 0.25
         });
+    }
 
-
+    drawDividerX() {
+        this.page.drawLine({
+            start: { x: this.startingX, y: this.startingY - this.height + this.cellLineHeight -1.25}, //- Math.max(headerHeight, headerFullTextHeight) },
+            end: { x: this.startingX + this.tableWidth, y: this.startingY - this.height + this.cellLineHeight -1.25}, // - Math.max(headerHeight, headerFullTextHeight) },
+            thickness: this.headerDividedXThickness,
+            color: this.headerDividedXColor,
+            opacity: 1,
+        });
     }
 }
 
