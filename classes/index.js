@@ -1,4 +1,4 @@
-import { rgb } from 'pdf-lib';
+import { rgb, rotateAndSkewTextDegreesAndTranslate } from 'pdf-lib';
 import { PDFDocument, StandardFonts, degrees } from 'pdf-lib';
 import { tableColumnWidths, spaceColumns, getMinColumnWidth, getWrapedText, getTextWidth } from "../functions/lib";
 
@@ -298,6 +298,8 @@ export class Table {
         page,
         data,
         columns,
+        columnWidths,
+        //tABLE
         startingX,
         startingY,
         tableType,
@@ -317,12 +319,25 @@ export class Table {
         customContinuesOnNextPage,
         //continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
         continuationFillerHeight,
+        //ROW
+        rowBackgroundColor,
+        alternateRowColor,
+        alternateCellColorValue,
+        
+        cellTextSize,
+        cellHeight,
+        cellLineHeight,
+        cellTextColor,
+        additionalWrapCharacters,
+        headerHeight,
+        autoHeaderHeight,
     ){
         //super(page)
         this.page = page.page,
         this.pageWidth = page.page.getWidth()
         this.data = data,
         this.columns = columns,
+        this.columnWidths = columnWidths,
         this.startingX = startingX,
         this.startingY = startingY,
         this.tableType = tableType,
@@ -341,7 +356,16 @@ export class Table {
         this.rounded = rounded,
         this.customContinuesOnNextPage = customContinuesOnNextPage,
         //this.continuationFiller = (page, x, y, font) => continuationSection(page, x, y, font),
-        this.continuationFillerHeight = continuationFillerHeight
+        this.continuationFillerHeight = continuationFillerHeight,
+        this.rowBackgroundColor = rowBackgroundColor,
+        this.alternateRowColor = alternateRowColor,
+        this.alternateCellColorValue = alternateCellColorValue
+        this.cellTextSize = cellTextSize,
+        this.cellHeight = cellHeight,
+        this.cellLineHeight = cellLineHeight,
+        this.cellTextColor = cellTextColor,
+        this.additionalWrapCharacters = additionalWrapCharacters
+        this.headerSectionHeight = headerHeight ? headerHeight : autoHeaderHeight
     }
 
     get docPage() {
@@ -375,7 +399,7 @@ export class Table {
     get rows() {
         const rows = [];
 
-        this.data.forEach(row => rows.push(new Row(row)))
+        this.data.forEach(row => rows.push(new Row(this.page, row,  this.startingX, this.tableWidth, this.rowBackgroundColor, this.alternateRowColor, this.alternateCellColorValue, this.cellLineHeight)))
         
         return rows
     }
@@ -388,6 +412,35 @@ export class Table {
     
     getPageWidth() {
         return this.pageWidth;
+    }
+
+    // drawDividerX() {
+    //     this.tablePage.drawLine({
+    //         start: { x: this.startingX, y: this.startingY - this.tableHeight}, //- Math.max(headerHeight, headerFullTextHeight) },
+    //         end: { x: this.startingX + this.tableWidth, y: this.startingY - this.tableHeight}, // - Math.max(headerHeight, headerFullTextHeight) },
+    //         thickness: this.headerDividedXThickness,
+    //         color: this.headerDividedXColor,
+    //         opacity: 1,
+    //     });
+    // }
+    
+    drawDividerY() {
+        console.log(this.startingY, this.additionalWrapCharacters);
+        
+        let counter = 0
+        Object.keys(this.columnWidths).forEach((col, i) => {
+            const dividerX = i == 0 ? this.columnWidths[col] : this.columnWidths[col] + counter;
+
+            this.docPage.drawLine({
+                start: { x: dividerX, y: this.startingY - this.headerSectionHeight},
+                end: { x: dividerX, y: this.startingY - this.tableHeight}, //Math.max(headerHeight, headerFullTextHeight) },
+                thickness: this.dividedYThickness,
+                color: this.dividedYColor,
+                opacity: 0.75,
+            });
+
+            counter += this.columnWidths[col];
+        })
     }
 };
 
@@ -565,9 +618,25 @@ export class Column {
 
 export class Row {
     constructor(
-        rowData
-    ){
+        page,
+        rowData,
+        startingX,
+        tableWidth,
+        rowBackgroundColor, 
+        alternateRowColor,
+        alternateCellColorValue,
+        cellLineHeight
+    ){  
+        this.page = page,
         this.rowData = rowData
+        this.startingX = startingX,
+        this.tableWidth = tableWidth,
+        this.rowBackgroundColor = rowBackgroundColor,
+        this.alternateRowColor = alternateRowColor,
+        this.alternateCellColorValue = alternateCellColorValue
+        this.height = rowData[0].rowHeight,
+        this.startingY = rowData[0].startingY,
+        this.cellLineHeight = cellLineHeight
     }
 
     get cells() {
@@ -575,6 +644,21 @@ export class Row {
         this.rowData.forEach(cell => cells.push(new Cell(cell)))
         
         return cells
+    }
+
+    drawRowBackground(index) {
+
+        this.page.drawRectangle({
+            x: this.startingX,
+            y: this.startingY - this.height + this.cellLineHeight -1.25,
+            width: this.tableWidth,
+            height: this.height,
+            borderWidth: 0,
+            color: index % 2 !== 0 &&  this.alternateRowColor ? this.alternateCellColorValue : this.rowBackgroundColor,
+            opacity: 0.25
+        });
+
+
     }
 }
 
@@ -588,6 +672,11 @@ export class Cell {
     }
 
     drawCell(page) {
+        this.drawCellText(page);
+    }
+    
+    
+    drawCellText(page) {
 
         const {values, startingX, startingY, textHeight, cellFont, lineHeight } = this.data;
 

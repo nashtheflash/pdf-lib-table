@@ -71,11 +71,13 @@ export async function drawTable({
     headerTextAlignment='left', // Default 'left' - left/right/center 
     headerTextJustification='top', //Default 'top' - top/center/bottom
     headerWrapText=false, // Default false - allows text in the header to wrap
+    //ROWSETTINGS
+    rowBackgroundColor=white, //rgb(1, 1, 1) - can pass in any pdf-lib rgb value
+    alternateRowColor=true, // Default true - cell rows will alternate background color
+    alternateCellColorValue=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
+    
     //CELL SETTINGS
     cellFont, // Required -  No Default - any pdflib standard font
-    cellBackgroundColor=white, //rgb(1, 1, 1) - can pass in any pdf-lib rgb value
-    alternateRowColor=true, // Default true - cell rows will alternate background color
-    alternateCellColor=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
     cellTextSize=8, // Default 10 - cell text size
     cellHeight=11, //TODO: remove this
     cellLineHeight=10,
@@ -142,6 +144,7 @@ export async function drawTable({
                 doc.documentPages[loop],
                 tableData,
                 columns,
+                columnWidths,
                 startingX,
                 startingY,
                 tableType,
@@ -161,6 +164,18 @@ export async function drawTable({
                 customContinuesOnNextPage,
                 //continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
                 continuationFillerHeight,
+                //ROW
+                rowBackgroundColor,
+                alternateRowColor,
+                alternateCellColorValue,
+                //CELL
+                cellTextSize=8, // Default 10 - cell text size
+                cellHeight=11, //TODO: remove this
+                cellLineHeight=10,
+                cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+                additionalWrapCharacters= ['/'],
+                headerHeight,
+                autoHeaderHeight,
             );
 
             
@@ -193,9 +208,13 @@ export async function drawTable({
                 
             );
 
+            table.drawDividerY();
             header.drawHeader(table.tableWidth);
 
-            table.rows.forEach((row) => {
+            table.rows.forEach((row, index) => {
+
+                row.drawRowBackground(index);
+
                 row.cells.forEach((cell) => {
                     cell.drawCell(doc.documentPages[loop]);
                 })
@@ -250,7 +269,7 @@ export async function drawTable({
 
             header.drawHeader();
 
-            table.rows.forEach((row) => {
+            table.rows.forEach((row, i) => {
                 row.cells.forEach((cell) => {
                     cell.drawCell(doc.documentPages[loop]);
                 })
