@@ -85,7 +85,7 @@ export async function drawTable({
     
     //CELL SETTINGS
     cellFont, // Required -  No Default - any pdflib standard font
-    cellTextSize=8, // Default 10 - cell text size
+    cellTextSize=10, // Default 10 - cell text size
     cellHeight=11, //TODO: remove this
     cellLineHeight=10,
     cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
@@ -178,9 +178,9 @@ export async function drawTable({
             alternateRowColor,
             alternateCellColorValue,
             //CELL
-            cellTextSize=8, // Default 10 - cell text size
+            cellTextSize, // Default 10 - cell text size
             cellHeight=11, //TODO: remove this
-            cellLineHeight=10,
+            cellLineHeight,
             cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
             additionalWrapCharacters= ['/'],
             headerHeight,

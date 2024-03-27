@@ -66,10 +66,9 @@ export class Data {
 
     tableColumnWidths() {
         //this should be the min column width by column
-        const minColumnWidth = getMinColumnWidth(this.data, this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters, this.startingX);
+        const minColumnWidth = getMinColumnWidth(this.data, this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters,);
         const tableWidth = this.maxTableWidth && this.maxTableWidth < (this.pageWidth - this.startingX) ? this.maxTableWidth : (this.pageWidth - this.startingX);
         const finalSizing = spaceColumns(minColumnWidth, this.columns, tableWidth);
-        console.log(finalSizing)
         return finalSizing;
     };
 
@@ -79,8 +78,6 @@ export class Data {
             let xCounter = this.startingX;
             return Object.keys(row).map(col => {
                 const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
-
-
 
                 const cell = {
                     colID: col,
@@ -363,7 +360,22 @@ export class Table {
     get rows() {
         const rows = [];
 
-        this.data.forEach(row => rows.push(new Row(this.page, row,  this.startingX, this.tableWidth, this.rowBackgroundColor, this.alternateRowColor, this.alternateCellColorValue, this.cellLineHeight)))
+        this.data.forEach(row => rows.push(
+                new Row(
+                    this.page, row,  
+                    this.startingX, 
+                    this.tableWidth, 
+                    this.rowBackgroundColor, 
+                    this.alternateRowColor, 
+                    this.alternateCellColorValue, 
+                    //Cell
+                    this.cellFont,
+                    this.cellTextColor,
+                    this.cellTextSize,
+                    this.cellLineHeight
+                )
+            )
+        )
         
         return rows
     }
@@ -479,8 +491,8 @@ export class Header {
     drawHeader(tableWidth) {
         this.drawHeadings();
         this.drawFill(tableWidth);
-        this.drawDividerX(tableWidth);
-        this.drawDividerY();
+        if(this.headerDividedX) this.drawDividerX(tableWidth);
+        if(this.headerDividedY) this.drawDividerY();
     };
 
     drawHeadings() {
@@ -592,6 +604,10 @@ export class Row {
         rowBackgroundColor, 
         alternateRowColor,
         alternateCellColorValue,
+        //Cell
+        cellFont,
+        cellTextColor,
+        cellTextSize,
         cellLineHeight
     ){  
         this.page = page,
@@ -603,12 +619,25 @@ export class Row {
         this.alternateCellColorValue = alternateCellColorValue
         this.height = rowData[0].rowHeight,
         this.startingY = rowData[0].startingY,
+        //Cell
+        this.cellFont = cellFont,
+        this.cellTextColor = cellTextColor,
+        this.cellTextSize = cellTextSize,
         this.cellLineHeight = cellLineHeight
     }
 
     get cells() {
         const cells = [];
-        this.rowData.forEach(cell => cells.push(new Cell(cell)))
+        this.rowData.forEach(cell => cells.push(
+                new Cell(
+                    cell,
+                    this.cellFont,
+                    this.cellTextColor,
+                    this.cellTextSize,
+                    this.cellLineHeight
+                )
+            )
+        )
         
         return cells
     }
@@ -638,8 +667,18 @@ export class Row {
 }
 
 export class Cell {
-    constructor(celldata){
+    constructor(
+        celldata,
+        cellFont,
+        cellTextColor,
+        cellTextSize,
+        cellLineHeight
+    ){
         this.data = celldata
+        this.cellFont = cellFont,
+        this.cellTextColor = cellTextColor,
+        this.cellTextSize = cellTextSize,
+        this.cellLineHeight = cellLineHeight
     }
 
     get cell() {
@@ -653,15 +692,17 @@ export class Cell {
     
     drawCellText(page) {
 
-        const {values, startingX, startingY, textHeight, cellFont, lineHeight } = this.data;
+        const {values, startingX, startingY} = this.data;
+
+        //console.log(this.cellTextSize)
 
         values.forEach((text, i) => {
             page.page.drawText(text, {
                 x: startingX,
-                y: startingY - (lineHeight * i),
-                size: textHeight,
-                font: cellFont,
-                lineHeight: lineHeight
+                y: startingY - (this.cellLineHeight * i),
+                font: this.cellFont,
+                size: this.cellTextSize,
+                lineHeight: this.cellLineHeight
             });
         })
     }

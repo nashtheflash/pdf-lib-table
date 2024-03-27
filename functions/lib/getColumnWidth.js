@@ -25,7 +25,7 @@ export const spaceColumns = (minColumnWidth, columns, tableWidth) => {
     return finalSizing;
 };
 
-export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerFont, headerTextSize, additionalWrapCharacters, startingX) => {
+export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerFont, headerTextSize, additionalWrapCharacters) => {
     let rowData = {};
     let headerData = {};
 
