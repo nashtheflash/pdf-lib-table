@@ -25,6 +25,7 @@
   "type": "module",
   "dependencies": {
     "patch-package": "^8.0.0",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "pdf-lib-utils": "^1.0.1"
   }
 }

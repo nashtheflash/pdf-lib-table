@@ -1,11 +1,11 @@
-export const continuationSection = (page, y, font) => {
-    const getTextWidth = (font, size, text) => font.widthOfTextAtSize(text, size);
+export const continuationSection = (page, continuesOnNextPage, continuationX, continuationY, continuationFont, continuationFontSize, continuationFillerHeight, continuationText) => {
+    const getTextWidth = (continuationFont, size, text) => continuationFont.widthOfTextAtSize(text, size);
 
-    page.drawText('Continues on Next Page', {
-        x: ((page.getWidth() - getTextWidth(font, 18, 'Continues on Next Page') )/ 2),
-        y,
-        size: 18,
-        font: font,
+    page.drawText(continuationText, {
+        x: continuationX || ((page.getWidth() - getTextWidth(continuationFont, 18, continuationText) )/ 2),
+        y: continuationY,
+        font: continuationFont,
+        size: continuationFontSize,
     });
 };
 

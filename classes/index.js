@@ -66,9 +66,10 @@ export class Data {
 
     tableColumnWidths() {
         //this should be the min column width by column
-        const minColumnWidth = getMinColumnWidth(this.data, this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters);
+        const minColumnWidth = getMinColumnWidth(this.data, this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters, this.startingX);
         const tableWidth = this.maxTableWidth && this.maxTableWidth < (this.pageWidth - this.startingX) ? this.maxTableWidth : (this.pageWidth - this.startingX);
         const finalSizing = spaceColumns(minColumnWidth, this.columns, tableWidth);
+        console.log(finalSizing)
         return finalSizing;
     };
 
@@ -250,47 +251,6 @@ export class Page {
         return this.pageDimensions[1]
 
     }
-
-    drawRuler() {
-        const loopLength = this.pdfPage.getWidth();
-        for (let loop = 25; loop <= loopLength; loop += 25) {
-
-            this.pdfPage.drawLine({
-                start: { x: loop, y: 792 },
-                end: { x: loop, y: 590},
-                thickness: 1,
-                color: rgb(.21, .24, .85),
-                opacity: 1,
-            });
-
-            this.pdfPage.drawText(loop.toString(), {
-                x: loop - 9,
-                y: 580,
-                size: 10,
-                color: rgb(.21, .24, .85),
-            });
-
-        }
-
-       const height = this.pdfPage.getHeight();
-        for (let loop = 0; loop < height; loop += 25) {
-    
-            this.pdfPage.drawLine({
-                start: { x: 0, y: loop },
-                end: { x: 20, y: loop},
-                thickness: 1,
-                color: rgb(.21, .24, .85),
-                opacity: 1,
-            });
-    
-            this.pdfPage.drawText(loop.toString(), {
-                x: 25,
-                y: loop,
-                size: 10,
-                color: rgb(.21, .24, .85),
-            });
-        }
-    }
 }
 
 export class Table {
@@ -316,7 +276,7 @@ export class Table {
         tableBoarderThickness,
         tableBoarderColor,
         rounded,
-        customContinuesOnNextPage,
+        //customContinuesOnNextPage,
         //continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
         continuationFillerHeight,
         //ROW
@@ -355,7 +315,7 @@ export class Table {
         this.tableBoarderThickness = tableBoarderThickness,
         this.tableBoarderColor = tableBoarderColor,
         this.rounded = rounded,
-        this.customContinuesOnNextPage = customContinuesOnNextPage,
+        //this.customContinuesOnNextPage = customContinuesOnNextPage,
         //this.continuationFiller = (page, x, y, font) => continuationSection(page, x, y, font),
         this.continuationFillerHeight = continuationFillerHeight,
         this.rowBackgroundColor = rowBackgroundColor,
@@ -408,8 +368,6 @@ export class Table {
         return rows
     }
      
-        
-
     getPageHeight() {
         return this.pageHeight;
     }
@@ -420,18 +378,35 @@ export class Table {
     
     drawDividerY() {
         let counter = 0
-        Object.keys(this.columnWidths).forEach((col, i) => {
-            const dividerX = i == 0 ? this.columnWidths[col] : this.columnWidths[col] + counter;
+        const keys = Object.keys(this.columnWidths);
+        
+        keys.forEach((col, i) => {
+            const dividerX = this.columnWidths[col] + counter;
 
-            this.docPage.drawLine({
-                start: { x: dividerX, y: this.startingY - this.headerSectionHeight},
-                end: { x: dividerX, y: this.startingY - this.tableHeight}, //Math.max(headerHeight, headerFullTextHeight) },
-                thickness: this.dividedYThickness,
-                color: this.dividedYColor,
-                opacity: 0.75,
-            });
+            if(i !== keys.length - 1) {
+                this.docPage.drawLine({
+                    start: { x: this.startingX + dividerX, y: this.startingY - this.headerSectionHeight},
+                    end: { x: this.startingX + dividerX, y: this.startingY - this.tableHeight}, //Math.max(headerHeight, headerFullTextHeight) },
+                    thickness: this.dividedYThickness,
+                    color: this.dividedYColor,
+                    opacity: 0.75,
+                });
+            }
 
             counter += this.columnWidths[col];
+        })
+    }
+    
+    drawBoarder() {
+        this.docPage.drawRectangle({
+            x: this.startingX,
+            y: this.startingY - this.tableHeight,
+            width: this.tableWidth,
+            height: this.tableHeight + this.tableBoarderThickness,
+            borderWidth: this.tableBoarderThickness,
+            borderColor: this.tableBoarderColor,
+            opacity: 1,
+            borderOpacity: 1,
         })
     }
 };
@@ -567,8 +542,8 @@ export class Header {
             const dividerX = i == 0 ? this.columnWidths[col] : this.columnWidths[col] + counter;
 
             this.tablePage.drawLine({
-                start: { x: dividerX, y: this.startingY },
-                end: { x: dividerX, y: this.startingY - this.headerSectionHeight}, //Math.max(headerHeight, headerFullTextHeight) },
+                start: { x: this.startingX + dividerX, y: this.startingY },
+                end: { x: this.startingX + dividerX, y: this.startingY - this.headerSectionHeight}, //Math.max(headerHeight, headerFullTextHeight) },
                 thickness: this.headerDividedYThickness,
                 color: this.headerDividedYColor,
                 opacity: 0.75,

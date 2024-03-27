@@ -3,6 +3,7 @@
  * 
  */
 import { rgb } from 'pdf-lib';
+import { drawRuler } from 'pdf-lib-utils';
 import { getLongestColumnItem, getColumnManualWidths, getHeaderItemLengths, getColumnWidths, getColumnIds, getNumberOfRows, getNumberOfSubHeadings, getTotalPages, createPages, getRowsByPage, getWrapedText, getRowMeasurments, tableColumnWidths, tableCells, tableRows} from './functions/lib';
 
 import { draw2WayTable, drawHorizontalTable, drawVerticalTable } from './functions/table';
@@ -46,9 +47,15 @@ export async function drawTable({
     tableBoarderThickness=1, // Default 1 - sets the thickness of the table boarder
     tableBoarderColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
     rounded=false, //TODO: add or remove this option. Currently not supported
-    customContinuesOnNextPage=false, // Default false - can pass a function for what to draw //TODO: add this.
-    continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
-    continuationFillerHeight=20,
+    //CONTINUES
+    continuesOnNextPage=false, // Default false - can pass a function for what to draw //TODO: add this.
+    continuationFiller=(page, continuesOnNextPage, continuationX, continuationY, continuationFont, continuationFontSize, continuationFillerHeight, continuationText) => continuationSection(page, continuesOnNextPage, continuationX, continuationY, continuationFont, continuationFontSize, continuationFillerHeight, continuationText),
+    continuationTextX = undefined, // Text starting X
+    continuationTextY=10, //Text starting Y
+    continuationFont=undefined, // Text font
+    continuationFontSize=15, // text font size
+    continuationFillerHeight=20, // this is the hight that will be left by the table
+    continuationText='Continues on Next Page',
     //SUB HEADINGS TODO: not suported yet
     subHeadingBackgroundColor='#8a8584', //TODO: Currently not supported
     subHeadingHeight=12, //TODO: Currently not supported
@@ -124,6 +131,8 @@ export async function drawTable({
         792.0,
         pageDimensions
     );
+
+    //Data
     const testFont = await doc.addFont();
     const columnWidths = docData.tableColumnWidths();
     const dataProcessor = docData.dataProcessor(columnWidths, testFont);
@@ -131,155 +140,102 @@ export async function drawTable({
     const headerData = docData.tableHeaders(columnWidths);
     const autoHeaderHeight = docData.tableHeader(columnWidths);
 
-    //print the rows on each page...
-
-    //console.log(dataProcessor);
+    //Loop through each page
     for (let loop = 0; loop <= totalPages; loop++){
-        if(loop === 0) {
+        const docObj = loop === 0 ? doc.documentPages[0] : doc.addPage();
+        const tableData = dataProcessor.data.filter(row => row[0].page === loop);
+        const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue[0].rowHeight,0,);
 
-            const tableData = dataProcessor.data.filter(row => row[0].page === loop);
-            const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue[0].rowHeight,0,);
+        drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
+        drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
 
-            doc.documentPages[loop].drawRuler();
+        const table = new Table(
+            docObj,
+            tableData,
+            columns,
+            columnWidths,
+            startingX,
+            startingY,
+            tableType,
+            dividedX,
+            dividedY,
+            dividedXColor,
+            dividedYColor,
+            dividedXThickness,
+            dividedYThickness,
+            maxTableWidth,
+            maxTableHeight,
+            rowHeightSizing,
+            tableBoarder,
+            tableBoarderThickness,
+            tableBoarderColor,
+            rounded,
+            //customContinuesOnNextPage,
+            //continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
+            continuationFillerHeight,
+            //ROW
+            rowBackgroundColor,
+            alternateRowColor,
+            alternateCellColorValue,
+            //CELL
+            cellTextSize=8, // Default 10 - cell text size
+            cellHeight=11, //TODO: remove this
+            cellLineHeight=10,
+            cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+            additionalWrapCharacters= ['/'],
+            headerHeight,
+            autoHeaderHeight,
+            tableHeight,
+        );
 
-            const table = new Table(
-                doc.documentPages[loop],
-                tableData,
-                columns,
-                columnWidths,
-                startingX,
-                startingY,
-                tableType,
-                dividedX,
-                dividedY,
-                dividedXColor,
-                dividedYColor,
-                dividedXThickness,
-                dividedYThickness,
-                maxTableWidth,
-                maxTableHeight,
-                rowHeightSizing,
-                tableBoarder,
-                tableBoarderThickness,
-                tableBoarderColor,
-                rounded,
-                customContinuesOnNextPage,
-                //continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
-                continuationFillerHeight,
-                //ROW
-                rowBackgroundColor,
-                alternateRowColor,
-                alternateCellColorValue,
-                //CELL
-                cellTextSize=8, // Default 10 - cell text size
-                cellHeight=11, //TODO: remove this
-                cellLineHeight=10,
-                cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-                additionalWrapCharacters= ['/'],
-                headerHeight,
-                autoHeaderHeight,
-                tableHeight,
-            );
+        if(table.dividedY) table.drawDividerY();
+        if(table.tableBoarder) table.drawBoarder();
 
+        
+
+        const header = new Header(
+            table.docPage,
+            columns, 
+            headerData,
+            table.columnIds,
+            table.headers,
+            columnWidths, 
+            table.startingX, 
+            table.startingY,
+            headerHeight,
+            autoHeaderHeight,
+            headerBackgroundColor,
+            headerWrapText,
+            headerFont,
+            headerTextSize,
+            headerLineHeight,
+            headerTextColor,
+            headerTextAlignment,
+            headerTextJustification,
+            headerDividedX,
+            headerDividedY,
+            headerDividedXColor,
+            headerDividedYColor,
+            headerDividedXThickness,
+            headerDividedYThickness,
             
+        );
 
-            const header = new Header(
-                table.docPage,
-                columns, 
-                headerData,
-                table.columnIds,
-                table.headers,
-                columnWidths, 
-                table.startingX, 
-                table.startingY,
-                headerHeight,
-                autoHeaderHeight,
-                headerBackgroundColor,
-                headerWrapText,
-                headerFont,
-                headerTextSize,
-                headerLineHeight,
-                headerTextColor,
-                headerTextAlignment,
-                headerTextJustification,
-                headerDividedX,
-                headerDividedY,
-                headerDividedXColor,
-                headerDividedYColor,
-                headerDividedXThickness,
-                headerDividedYThickness,
-                
-            );
-
-            table.drawDividerY();
-            header.drawHeader(table.tableWidth);
-
-            table.rows.forEach((row, index) => {
-
-                row.drawRowBackground(index);
-                if(index !== table.rows.length - 1)row.drawDividerX();
-
-                row.cells.forEach((cell) => {
-                    cell.drawCell(doc.documentPages[loop]);
-                })
+        //Headers 
+        header.drawHeader(table.tableWidth);
+        
+        //Rows
+        table.rows.forEach((row, index) => {
+            //Row
+            row.drawRowBackground(index);
+            if(index !== table.rows.length - 1)row.drawDividerX();
+            //Cells
+            row.cells.forEach((cell) => {
+                cell.drawCell(docObj);
             })
+        })
 
-            
-
-
-        } else if(loop !== 0) {
-            const newDoc = doc.addPage();
-            
-            const tableData = dataProcessor.data.filter(row => row[0].page === loop);
-
-            const table = new Table(
-                newDoc,
-                tableData,
-                columns,
-                appendedPageStartX,
-                appendedPageStartY,
-                tableType,
-                dividedX,
-                dividedY,
-                dividedXColor,
-                dividedYColor,
-                dividedXThickness,
-                dividedYThickness,
-                maxTableWidth,
-                maxTableHeight,
-                rowHeightSizing,
-                tableBoarder,
-                tableBoarderThickness,
-                tableBoarderColor,
-                rounded,
-                customContinuesOnNextPage,
-                //continuationFiller=(page, x, y, font) => continuationSection(page, x, y, font),
-                continuationFillerHeight,
-            );
-
-            const header = new Header(
-                table.docPage,
-                columns, 
-                table.columnIds,
-                table.headers,
-                columnWidths, 
-                table.startingX, 
-                table.startingY,
-                headerFont, 
-                headerTextSize, 
-                headerLineHeight,
-                headerWrapText
-            );
-
-            header.drawHeader();
-
-            table.rows.forEach((row, i) => {
-                row.cells.forEach((cell) => {
-                    cell.drawCell(doc.documentPages[loop]);
-                })
-            })
-
-        }
+        if(loop < totalPages) continuationFiller(table.docPage, continuesOnNextPage, continuationTextX, continuationTextY, headerFont, continuationFontSize, continuationFillerHeight, continuationText)
     };
     
     
