@@ -48,7 +48,7 @@ export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrap
         //TODO: PDF-libs text calc does not work. I need to probably fix it. According to this issue,
         //pdf-lib des not print kerning but the text measure uses kerning. Its really stupid
         //
-        const currentWordLength = getTextWidth(font, fontSize, words[loop]+' ') + .19;
+        const currentWordLength = getTextWidth(font, fontSize, words[loop]+' ') + 1.3;
 
         if (currentWordLength + currentLineWidth >= textAreaSize && words.length !== 0) {
             lineBreaks.push(loop)
