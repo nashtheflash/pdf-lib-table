@@ -279,7 +279,7 @@ export class Table {
         //ROW
         rowBackgroundColor,
         alternateRowColor,
-        alternateCellColorValue,
+        alternateRowColorValue,
         
         cellTextSize,
         cellHeight,
@@ -317,7 +317,8 @@ export class Table {
         this.continuationFillerHeight = continuationFillerHeight,
         this.rowBackgroundColor = rowBackgroundColor,
         this.alternateRowColor = alternateRowColor,
-        this.alternateCellColorValue = alternateCellColorValue
+        this.alternateRowColorValue = alternateRowColorValue
+
         this.cellTextSize = cellTextSize,
         this.cellHeight = cellHeight,
         this.cellLineHeight = cellLineHeight,
@@ -363,11 +364,13 @@ export class Table {
         this.data.forEach(row => rows.push(
                 new Row(
                     this.page, row,  
-                    this.startingX, 
+                    this.startingX,
+                    this.dividedXThickness,
+                    this.dividedXColor,
                     this.tableWidth, 
                     this.rowBackgroundColor, 
                     this.alternateRowColor, 
-                    this.alternateCellColorValue, 
+                    this.alternateRowColorValue, 
                     //Cell
                     this.cellFont,
                     this.cellTextColor,
@@ -600,10 +603,12 @@ export class Row {
         page,
         rowData,
         startingX,
+        dividedXThickness,
+        dividedXColor,
         tableWidth,
         rowBackgroundColor, 
         alternateRowColor,
-        alternateCellColorValue,
+        alternateRowColorValue,
         //Cell
         cellFont,
         cellTextColor,
@@ -613,10 +618,12 @@ export class Row {
         this.page = page,
         this.rowData = rowData
         this.startingX = startingX,
+        this.dividedXThickness = dividedXThickness,
+        this.dividedXColor = dividedXColor,
         this.tableWidth = tableWidth,
         this.rowBackgroundColor = rowBackgroundColor,
         this.alternateRowColor = alternateRowColor,
-        this.alternateCellColorValue = alternateCellColorValue
+        this.alternateRowColorValue = alternateRowColorValue
         this.height = rowData[0].rowHeight,
         this.startingY = rowData[0].startingY,
         //Cell
@@ -650,7 +657,7 @@ export class Row {
             width: this.tableWidth,
             height: this.height,
             borderWidth: 0,
-            color: index % 2 !== 0 &&  this.alternateRowColor ? this.alternateCellColorValue : this.rowBackgroundColor,
+            color: index % 2 !== 0 &&  this.alternateRowColor ? this.alternateRowColorValue : this.rowBackgroundColor,
             opacity: 0.25
         });
     }
@@ -659,8 +666,8 @@ export class Row {
         this.page.drawLine({
             start: { x: this.startingX, y: this.startingY - this.height + this.cellLineHeight -1.25}, //- Math.max(headerHeight, headerFullTextHeight) },
             end: { x: this.startingX + this.tableWidth, y: this.startingY - this.height + this.cellLineHeight -1.25}, // - Math.max(headerHeight, headerFullTextHeight) },
-            thickness: this.headerDividedXThickness,
-            color: this.headerDividedXColor,
+            thickness: this.dividedXThickness,
+            color: this.dividedXColor,
             opacity: 1,
         });
     }
@@ -694,15 +701,14 @@ export class Cell {
 
         const {values, startingX, startingY} = this.data;
 
-        //console.log(this.cellTextSize)
-
         values.forEach((text, i) => {
             page.page.drawText(text, {
                 x: startingX,
                 y: startingY - (this.cellLineHeight * i),
                 font: this.cellFont,
                 size: this.cellTextSize,
-                lineHeight: this.cellLineHeight
+                lineHeight: this.cellLineHeight,
+                color: this.cellTextColor
             });
         })
     }

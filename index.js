@@ -81,7 +81,7 @@ export async function drawTable({
     //ROWSETTINGS
     rowBackgroundColor=white, //rgb(1, 1, 1) - can pass in any pdf-lib rgb value
     alternateRowColor=true, // Default true - cell rows will alternate background color
-    alternateCellColorValue=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
+    alternateRowColorValue=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
     
     //CELL SETTINGS
     cellFont, // Required -  No Default - any pdflib standard font
@@ -128,7 +128,7 @@ export async function drawTable({
         cellLineHeight, 
         maxTableWidth,
         additionalWrapCharacters, 
-        792.0,
+        pageDimensions[0],
         pageDimensions
     );
 
@@ -146,8 +146,8 @@ export async function drawTable({
         const tableData = dataProcessor.data.filter(row => row[0].page === loop);
         const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue[0].rowHeight,0,);
 
-        drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
-        drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
+        // drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
+        // drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
 
         const table = new Table(
             docObj,
@@ -176,23 +176,21 @@ export async function drawTable({
             //ROW
             rowBackgroundColor,
             alternateRowColor,
-            alternateCellColorValue,
+            alternateRowColorValue,
             //CELL
             cellTextSize, // Default 10 - cell text size
             cellHeight=11, //TODO: remove this
             cellLineHeight,
-            cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
+            cellTextColor, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
             additionalWrapCharacters= ['/'],
             headerHeight,
             autoHeaderHeight,
             tableHeight,
         );
 
-        if(table.dividedY) table.drawDividerY();
-        if(table.tableBoarder) table.drawBoarder();
-
         
-
+        
+        
         const header = new Header(
             table.docPage,
             columns, 
@@ -220,6 +218,10 @@ export async function drawTable({
             headerDividedYThickness,
             
         );
+            
+        //Draw Table
+        if(table.dividedY) table.drawDividerY();
+        if(table.tableBoarder) table.drawBoarder();
 
         //Headers 
         header.drawHeader(table.tableWidth);
@@ -228,7 +230,7 @@ export async function drawTable({
         table.rows.forEach((row, index) => {
             //Row
             row.drawRowBackground(index);
-            if(index !== table.rows.length - 1)row.drawDividerX();
+            if(index !== table.rows.length - 1 && table.dividedX)row.drawDividerX();
             //Cells
             row.cells.forEach((cell) => {
                 cell.drawCell(docObj);
