@@ -22,7 +22,8 @@ export class Data {
         maxTableWidth,
         additionalWrapCharacters, 
         pageWidth,
-        pageDimensions
+        pageDimensions,
+        continuationFillerHeight
     ){
         this.data = data,
         this.columns = columns,
@@ -43,7 +44,8 @@ export class Data {
         this.maxTableWidth = maxTableWidth,
         this.additionalWrapCharacters  = additionalWrapCharacters,
         this.pageWidth = pageWidth,
-        this.pageDimensions = pageDimensions
+        this.pageDimensions = pageDimensions,
+        this.continuationFillerHeight = continuationFillerHeight
     }
 
     tableHeader(columnWidths) {
@@ -138,8 +140,6 @@ export class Data {
                 return {...c, rowHeight: rHeight[c.rowId].rowHeight}
             })
         });
-        
-        const pageHeight = this.pageDimensions[1];
 
         let counter = 0;
         let pageCount = 0;
@@ -147,15 +147,15 @@ export class Data {
         modifiedRows.forEach((row, i) => {
             const curentRowHeight = row[0].rowHeight;
             
-            if (pageCount !== 0 && counter + tableHeaderHeight + curentRowHeight > pageHeight) {
+            if (pageCount !== 0 && counter + tableHeaderHeight + curentRowHeight > this.pageDimensions[1] - this.continuationFillerHeight) {
                 pageCount++;
                 counter = 0;
-            }
+            };
 
-            if (pageCount === 0 && counter + tableHeaderHeight + curentRowHeight > this.startingY) {
+            if (pageCount === 0 && counter + tableHeaderHeight + curentRowHeight > this.startingY - this.continuationFillerHeight) {
                 pageCount++;
                 counter = 0;
-            }
+            };
             
 
             const mod = row.map(cell => ({
@@ -351,7 +351,7 @@ export class Table {
     get tableHeight() {
         //return this.maxTableWidth && this.maxTableWidth < (this.pageHeight - this.startingY) ? this.maxTableWidth : (this.pageWidth - this.startingX);
         // return this.maxTableWidth && this.currentTableHeight 
-        return this.maxTableWidth && this.currentTableHeight + this.headerSectionHeight
+        return this.maxTableWidth && this.currentTableHeight + this.headerSectionHeight //- this.continuationFillerHeight;
     }
 
     get docStartingY() {

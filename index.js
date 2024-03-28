@@ -28,11 +28,11 @@ export async function drawTable({
     fonts,
     columns, // Required - No Default - column definitions
     pageDimensions=[792.0, 612.0],
-    appendedPageStartX=0,
-    appendedPageStartY=612,
     //TABLE SETTINGS
     startingX=0, // Default 0 - Default 0 - the starting x coordinate
     startingY=612, // Default 0 - the starting y coordinate
+    appendedPageStartX=100,
+    appendedPageStartY=512,
     tableType='vertical', // Default 'vertical' - Options: vertical || horizontal || 2way TODO: horizontal || 2way not suported yet
     dividedX=true, // Default true - sets if the table has x dividers
     dividedY=true, // Default true - sets if the table has y dividers
@@ -129,13 +129,14 @@ export async function drawTable({
         maxTableWidth,
         additionalWrapCharacters, 
         pageDimensions[0],
-        pageDimensions
+        pageDimensions,
+        continuationFillerHeight
     );
 
     //Data
-    const testFont = await doc.addFont();
+    //const testFont = await doc.addFont();
     const columnWidths = docData.tableColumnWidths();
-    const dataProcessor = docData.dataProcessor(columnWidths, testFont);
+    const dataProcessor = docData.dataProcessor(columnWidths);
     const totalPages = dataProcessor.pages;
     const headerData = docData.tableHeaders(columnWidths);
     const autoHeaderHeight = docData.tableHeader(columnWidths);
@@ -154,8 +155,8 @@ export async function drawTable({
             tableData,
             columns,
             columnWidths,
-            startingX,
-            startingY,
+            loop === 0 ? startingX : appendedPageStartX,
+            loop === 0 ? startingY : appendedPageStartY,
             tableType,
             dividedX,
             dividedY,
