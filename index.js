@@ -3,12 +3,6 @@
  * 
  */
 import { rgb } from 'pdf-lib';
-import { drawRuler } from 'pdf-lib-utils';
-import { getLongestColumnItem, getColumnManualWidths, getHeaderItemLengths, getColumnWidths, getColumnIds, getNumberOfRows, getNumberOfSubHeadings, getTotalPages, createPages, getRowsByPage, getWrapedText, getRowMeasurments, tableColumnWidths, tableCells, tableRows} from './functions/lib';
-
-import { draw2WayTable, drawHorizontalTable, drawVerticalTable } from './functions/table';
-import { getHeaderRows } from './functions/header/headerFuncitons';
-import { getTotalRowHeight } from './functions/row/rowFunctions';
 import { continuationSection } from './fillers';
 
 
@@ -93,16 +87,6 @@ export async function drawTable({
     additionalWrapCharacters= ['/']
     //cellPaddingBottom=0,
 } = {}) {
-
-    //columns widths
-    // const columnWidths = tableColumnWidths(data, columns, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, additionalWrapCharacters); // {colID: width} thats it all logic needs to live here.
-    // const rows = tableRows(data, columns, columnWidths, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, cellLineHeight, additionalWrapCharacters, headerHeight);//wrap the text and define where the text will print on the page; row -> [{colID, startingX, startingY, font, rowHeight, textHeight, values: [line1 of text, line 2 of text]}]
-    // const cells = tableCells(data, columns, columnWidths, startingX, startingY, maxTableWidth, page.getWidth(), cellFont, cellTextSize, cellLineHeight, additionalWrapCharacters);//wrap the text and define where the text will print on the page; row -> [{colID, startingX, startingY, font, rowHeight, textHeight, values: [line1 of text, line 2 of text]}]
-    // //number & height of rows and which page the row will print on; from above [[rows], [rows]]
-
-
-
-    // headerHeight headerFont, headerTextSize, headerWrapText
     
     const doc = new Document(
         page,
@@ -112,42 +96,10 @@ export async function drawTable({
         pageDimensions,
     );
 
-    // const docData = new Data(
-    //     data, 
-    //     columns,
-    //     startingX,
-    //     startingY,
-    //     appendedPageStartX,
-    //     appendedPageStartY,
-    //     headerHeight, 
-    //     headerFont, 
-    //     headerTextSize, 
-    //     headerLineHeight,
-    //     headerWrapText,
-    //     cellFont, 
-    //     cellTextSize, 
-    //     cellLineHeight, 
-    //     maxTableWidth,
-    //     additionalWrapCharacters, 
-    //     pageDimensions[0],
-    //     pageDimensions,
-    //     continuationFillerHeight
-    // );
-
-    //Data
-    // const columnWidths = docData.tableColumnWidths();
-    // const dataProcessor = docData.dataProcessor(columnWidths);
-    // const totalPages = dataProcessor.pages;
-    // const headerData = docData.tableHeaders(columnWidths);
-    // const autoHeaderHeight = docData.tableHeader(columnWidths);
-
-
     let remaningData = data;//this needs to be the counter in the loop below
-    //let remaningDataClean = [1]
-    //console.log(remaningData)
     
     //Loop through each page
-    for (let loop = 0; loop < remaningData.length; loop++){
+    for (let loop = 0; loop < remaningData.length; loop++) {
 
         const docData = new Data(
             remaningData, 
@@ -180,8 +132,6 @@ export async function drawTable({
         const headerData = docData.tableHeaders(columnWidths);
         const autoHeaderHeight = docData.tableHeader(columnWidths);
 
-
-        //if (loop === 0) remaningDataClean = dataProcessor.data;
         const docObj = loop === 0 ? doc.documentPages[0] : doc.addPage();
         const tableData = dataProcessor.data.filter(row => row[0].page === 0);//TODO: refactor because this is slicing data it is always looking for the current page data
         const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue[0].rowHeight,0,);
@@ -229,9 +179,6 @@ export async function drawTable({
             headerFont,
             headerTextSize
         );
-
-        
-        
         
         const header = new Header(
             table.docPage,
@@ -286,177 +233,4 @@ export async function drawTable({
 
         if(remaningData.length > 0) continuationFiller(table.docPage, continuesOnNextPage, continuationTextX, continuationTextY, headerFont, continuationFontSize, continuationFillerHeight, continuationText)
     };
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    // // process data
-    // const pageHeight = page.getHeight();
-    // const pageWidth = page.getWidth();
-
-    // const numberOfRows = getNumberOfRows(data);
-
-    // const numberOfSubHeadings = getNumberOfSubHeadings(data);
-    // const columnIds = getColumnIds(columns); 
-    // const headerLengths = getHeaderItemLengths(columns, headerFont, headerTextSize);
-    // const longestRowItem = getLongestColumnItem(data, cellFont, cellTextSize);
-    // const manualColumnWidths = getColumnManualWidths(columns);
-    // const availableTableWidth = !maxTableWidth ? (pageWidth - startingX) : Math.min(pageWidth, maxTableWidth);
-    
-    // const columnWidths = getColumnWidths({
-    //     page,
-    //     columnIds,
-    //     startingX,
-    //     pageHeight,
-    //     pageWidth,
-    //     maxTableWidth,
-    //     maxTableHeight,
-    //     manualColumnWidths,
-    //     headerLengths,
-    //     longestRowItem,
-    //     availableTableWidth
-    // });
-    
-    // //Heeder Measurments
-    // const headerTextRows = getHeaderRows({ headerWrapText, columns, headerFont, headerTextSize, columnWidths });
-    // const headerFullTextHeight = headerTextRows * headerTextSize;
-    // const totalHeaderHeight = Math.max(headerHeight, headerFullTextHeight);
-    // const rowSectionStartingY =  totalHeaderHeight + cellTextSize;
-    // const TotalRowHeight = getTotalRowHeight(data, cellFont, cellTextSize, cellTextSize, 0, columnWidths);
-    
-    
-    
-    // const availableTableHeight = totalHeaderHeight + TotalRowHeight //+ (numberOfSubHeadings * subHeadingHeight);
-    // const totalPages = getTotalPages(page, pageHeight, availableTableHeight, startingY);
-    // const allPages = createPages(page, totalPages, pageDimensions, pdfDoc, totalPages);
-    // const rowsByPage = getRowsByPage(allPages, numberOfRows);
-
-
-    // ///ROWS
-    // const rowMeasurments = getRowMeasurments(data, startingY, cellFont, cellTextSize, columnWidths, rowSectionStartingY);
-
-    
-    
-    // // build table
-    // const tableProps = {
-    //     data,
-    //     page,
-    //     pdfDoc,
-    //     columns,
-    //     columnIds,
-    //     pageDimensions,
-    //     appendedPageStartX,
-    //     appendedPageStartY,
-    //     //TABLE SETTINGS
-    //     startingX,
-    //     startingY,
-    //     tableType,
-    //     dividedX,
-    //     dividedY,
-    //     dividedXColor,
-    //     dividedYColor,
-    //     dividedXThickness,
-    //     dividedYThickness,
-    //     maxTableWidth,
-    //     maxTableHeight,
-    //     rowHeightSizing,
-    //     alternateRowColor,
-    //     alternateCellColor,
-    //     tableBoarder,
-    //     tableBoarderThickness,
-    //     tableBoarderColor,
-    //     rounded,
-    //     customContinuesOnNextPage,
-    //     //FILLERS
-    //     continuationFiller,
-    //     continuationFillerHeight,
-    //     //SUB HEADINGS
-    //     subHeadingBackgroundColor,
-    //     subHeadingHeight,
-    //     subHeadingFont,
-    //     subHeadingTextColor,
-    //     subHeadingTextSize,
-    //     //HEADER SETTINGS
-    //     headerFont,
-    //     headerDividedX,
-    //     headerDividedY,
-    //     headerDividedXColor,
-    //     headerDividedYColor,
-    //     headerDividedXThickness,
-    //     headerDividedYThickness,
-    //     headerBackgroundColor,
-    //     headerHeight,
-    //     headerTextColor,
-    //     headerTextSize,
-    //     headerTextAlignment,
-    //     headerWrapText,
-    //     //CELL SETTINGS
-    //     cellFont,
-    //     cellBackgroundColor,
-    //     cellTextSize,
-    //     cellTextColor,
-    //     cellHeight,
-    //    // cellPaddingBottom,
-    //     //DERIVED
-    //     totalPages,
-    //     allPages,
-    //     pageHeight,
-    //     pageWidth,
-    //     numberOfRows,
-    //     numberOfSubHeadings,
-    //     availableTableWidth,
-    //     availableTableHeight,
-    //     headerLengths,
-    //     longestRowItem,
-    //     manualColumnWidths,
-    //     columnWidths,
-    //     headerTextRows,
-    //     headerFullTextHeight,
-    //     rowSectionStartingY,
-    //     rowMeasurments
-    // };
-
-    // if(tableType === 'vertical') drawVerticalTable(tableProps);
-    // // if(tableType === 'horizontal') drawHorizontalTable(tableProps);
-    // // if(tableType === '2way') draw2WayTable(tableProps);
-
-    // return allPages; //TODO: i need to return the end of the table and an array of pages that the table was printed on.
 };
-
-

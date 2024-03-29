@@ -358,8 +358,6 @@ export class Table {
     }
 
     get tableHeight() {
-        //return this.maxTableWidth && this.maxTableWidth < (this.pageHeight - this.startingY) ? this.maxTableWidth : (this.pageWidth - this.startingX);
-        // return this.maxTableWidth && this.currentTableHeight 
         return this.maxTableWidth && this.currentTableHeight + this.headerSectionHeight //- this.continuationFillerHeight;
     }
 
@@ -432,13 +430,7 @@ export class Table {
             opacity: 1,
             borderOpacity: 1,
         })
-    }
-
-
-    
-
-
-    
+    };
 };
 
 export class Header {
