@@ -32,13 +32,8 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
     //build the rowdata var out for next step
     columns.forEach(({ columnId }) => rowData = {...rowData, [columnId]: []});
     //breakes down all of the strings to words or user specifid brake points
+   
     
-    // data.forEach((row) => { removed because below is way faster
-    //     Object.keys(row).forEach((rowVal) => {
-    //         rowData[rowVal] = [...rowData[rowVal], ...breakWord(row[rowVal].toString(), additionalWrapCharacters)]
-    //     })
-    // });
-
     //Rows
     const dataLength = data.length
     const rowKeys = Object.keys(data[0]); // Assuming all rows have the same keys
@@ -47,6 +42,7 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
         for (let j = 0; j < rowKeys.length; j++) {
             const rowVal = rowKeys[j];
             const value = row[rowVal];
+            // console.log(rowVal)
             const words = breakWord(value.toString(), additionalWrapCharacters);
             if (!rowData[rowVal]) {
                 rowData[rowVal] = words;
@@ -55,7 +51,7 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
             }
         }
     }
-
+    
     //Headers
     const columnLength = columns.length;
     for (let i = 0; i < columnLength; i++) {
@@ -66,22 +62,25 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
         } else {
             headerData[header.columnId].push(...words);
         }
-    }
+    };
+    
     
     //order rows from smalles to largest numbers will go to the front
     Object.keys(rowData).forEach(row => {
         rowData[row].sort((a,b) => a.length > b.length ? 1 : -1);
     });
-
+    
     //order heaaders from smalles to largest numbers will go to the front
     Object.keys(headerData).forEach(header => {
         headerData[header].sort((a,b) => a.length > b.length ? 1 : -1);
     });
     
     //gets the minumum width for the column
+    //console.log(rowData)
     Object.keys(rowData).forEach((row) => {
-        const columnHeader = columns.find((col) => col.columnId == row).header;
+        //const columnHeader = columns.find((col) => col.columnId == row).header;
         
+        //console.log(headerData, row)
         const longestHeaderItem = headerData[row][headerData[row].length -1];
         const longestColumnItem = rowData[row][rowData[row].length -1];
         

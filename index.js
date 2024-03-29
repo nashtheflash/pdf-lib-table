@@ -33,6 +33,7 @@ export async function drawTable({
     startingY=612, // Default 0 - the starting y coordinate
     appendedPageStartX=100,
     appendedPageStartY=512,
+    appendedMaxTableWidth=500,
     tableType='vertical', // Default 'vertical' - Options: vertical || horizontal || 2way TODO: horizontal || 2way not suported yet
     dividedX=true, // Default true - sets if the table has x dividers
     dividedY=true, // Default true - sets if the table has y dividers
@@ -111,44 +112,80 @@ export async function drawTable({
         pageDimensions,
     );
 
-    const docData = new Data(
-        data, 
-        columns,
-        startingX,
-        startingY,
-        appendedPageStartX,
-        appendedPageStartY,
-        headerHeight, 
-        headerFont, 
-        headerTextSize, 
-        headerLineHeight,
-        headerWrapText,
-        cellFont, 
-        cellTextSize, 
-        cellLineHeight, 
-        maxTableWidth,
-        additionalWrapCharacters, 
-        pageDimensions[0],
-        pageDimensions,
-        continuationFillerHeight
-    );
+    // const docData = new Data(
+    //     data, 
+    //     columns,
+    //     startingX,
+    //     startingY,
+    //     appendedPageStartX,
+    //     appendedPageStartY,
+    //     headerHeight, 
+    //     headerFont, 
+    //     headerTextSize, 
+    //     headerLineHeight,
+    //     headerWrapText,
+    //     cellFont, 
+    //     cellTextSize, 
+    //     cellLineHeight, 
+    //     maxTableWidth,
+    //     additionalWrapCharacters, 
+    //     pageDimensions[0],
+    //     pageDimensions,
+    //     continuationFillerHeight
+    // );
 
     //Data
-    //const testFont = await doc.addFont();
-    const columnWidths = docData.tableColumnWidths();
-    const dataProcessor = docData.dataProcessor(columnWidths);
-    const totalPages = dataProcessor.pages;
-    const headerData = docData.tableHeaders(columnWidths);
-    const autoHeaderHeight = docData.tableHeader(columnWidths);
+    // const columnWidths = docData.tableColumnWidths();
+    // const dataProcessor = docData.dataProcessor(columnWidths);
+    // const totalPages = dataProcessor.pages;
+    // const headerData = docData.tableHeaders(columnWidths);
+    // const autoHeaderHeight = docData.tableHeader(columnWidths);
 
+
+    let remaningData = data;//this needs to be the counter in the loop below
+    //let remaningDataClean = [1]
+    //console.log(remaningData)
+    
     //Loop through each page
-    for (let loop = 0; loop <= totalPages; loop++){
-        const docObj = loop === 0 ? doc.documentPages[0] : doc.addPage();
-        const tableData = dataProcessor.data.filter(row => row[0].page === loop);
-        const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue[0].rowHeight,0,);
+    for (let loop = 0; loop < remaningData.length; loop++){
+
+        const docData = new Data(
+            remaningData, 
+            columns,
+            startingX,
+            startingY,
+            appendedPageStartX,
+            appendedPageStartY,
+            headerHeight, 
+            headerFont, 
+            headerTextSize, 
+            headerLineHeight,
+            headerWrapText,
+            cellFont, 
+            cellTextSize, 
+            cellLineHeight, 
+            loop === 0 ? maxTableWidth : appendedMaxTableWidth,
+            additionalWrapCharacters, 
+            pageDimensions[0],
+            pageDimensions,
+            continuationFillerHeight
+        );
 
         // drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
         // drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
+
+        const columnWidths = docData.tableColumnWidths(loop === 0 ? startingX : appendedPageStartX, loop === 0 ? startingY : appendedPageStartY);
+
+        const dataProcessor = docData.dataProcessor(columnWidths, loop);
+        const headerData = docData.tableHeaders(columnWidths);
+        const autoHeaderHeight = docData.tableHeader(columnWidths);
+
+
+        //if (loop === 0) remaningDataClean = dataProcessor.data;
+        const docObj = loop === 0 ? doc.documentPages[0] : doc.addPage();
+        const tableData = dataProcessor.data.filter(row => row[0].page === 0);//TODO: refactor because this is slicing data it is always looking for the current page data
+        const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue[0].rowHeight,0,);
+
 
         const table = new Table(
             docObj,
@@ -164,7 +201,7 @@ export async function drawTable({
             dividedYColor,
             dividedXThickness,
             dividedYThickness,
-            maxTableWidth,
+            loop === 0 ? maxTableWidth : appendedMaxTableWidth,
             maxTableHeight,
             rowHeightSizing,
             tableBoarder,
@@ -179,6 +216,7 @@ export async function drawTable({
             alternateRowColor,
             alternateRowColorValue,
             //CELL
+            cellFont,
             cellTextSize, // Default 10 - cell text size
             cellHeight=11, //TODO: remove this
             cellLineHeight,
@@ -187,6 +225,9 @@ export async function drawTable({
             headerHeight,
             autoHeaderHeight,
             tableHeight,
+            //Header
+            headerFont,
+            headerTextSize
         );
 
         
@@ -219,7 +260,7 @@ export async function drawTable({
             headerDividedYThickness,
             
         );
-            
+
         //Draw Table
         if(table.dividedY) table.drawDividerY();
         if(table.tableBoarder) table.drawBoarder();
@@ -228,7 +269,8 @@ export async function drawTable({
         header.drawHeader(table.tableWidth);
         
         //Rows
-        table.rows.forEach((row, index) => {
+        const rows = table.rows;
+        rows.forEach((row, index) => {
             //Row
             row.drawRowBackground(index);
             if(index !== table.rows.length - 1 && table.dividedX)row.drawDividerX();
@@ -238,7 +280,11 @@ export async function drawTable({
             })
         })
 
-        if(loop < totalPages) continuationFiller(table.docPage, continuesOnNextPage, continuationTextX, continuationTextY, headerFont, continuationFontSize, continuationFillerHeight, continuationText)
+        remaningData = remaningData.slice(table.rows.length);
+
+        console.log(remaningData)
+
+        if(remaningData.length > 0) continuationFiller(table.docPage, continuesOnNextPage, continuationTextX, continuationTextY, headerFont, continuationFontSize, continuationFillerHeight, continuationText)
     };
     
     

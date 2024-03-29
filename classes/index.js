@@ -65,19 +65,18 @@ export class Data {
         // return fulldata;
     }
 
-
-    tableColumnWidths() {
+   tableColumnWidths(startingX) {
         //this should be the min column width by column
-        const minColumnWidth = getMinColumnWidth(this.data, this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters,);
-        const tableWidth = this.maxTableWidth && this.maxTableWidth < (this.pageWidth - this.startingX) ? this.maxTableWidth : (this.pageWidth - this.startingX);
+        const minColumnWidth = getMinColumnWidth(this.data, this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters);
+        const tableWidth = this.maxTableWidth && this.maxTableWidth < (this.pageWidth - startingX) ? this.maxTableWidth : (this.pageWidth - startingX);
         const finalSizing = spaceColumns(minColumnWidth, this.columns, tableWidth);
         return finalSizing;
     };
 
-    tableCells(columnWidths) {
+    tableCells(columnWidths, loop){
     
         return this.data.map((row, rowIndex) => {
-            let xCounter = this.startingX;
+            let xCounter = loop === 0 ? this.startingX : this.appendedPageStartX;
             return Object.keys(row).map(col => {
                 const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
 
@@ -116,10 +115,10 @@ export class Data {
         });
     }
     
-    tableRows(columnWidths, testFont) {
-        const data = this.data.map(row => {
+    tableRows(columnWidths) {
+        const rowdata = this.data.map(row => {
             const longestItem = Object.keys(row).reduce((longest, col) => {
-                const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters, testFont);
+                const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
                 return wrappedText.length > longest.length ? wrappedText : longest;
             }, []);
             return {
@@ -127,13 +126,15 @@ export class Data {
             };
         });
         
-        return data;
+        return rowdata;
     }
 
-    dataProcessor (columnWidths, testFont) {
-        const rHeight = this.tableRows(columnWidths, testFont);
-        const rowDetail = [...this.tableCells(columnWidths)];
+    dataProcessor (columnWidths, loop) {
+        const rHeight = this.tableRows(columnWidths);
+        const rowDetail = [...this.tableCells(columnWidths, loop)];
         const tableHeaderHeight = this.tableHeader(columnWidths);
+
+        const startingY = loop === 0 ? this.startingY : this.appendedPageStartY;
         
         const modifiedRows = rowDetail.map((row, index) => {
             return row.map(c => {
@@ -152,7 +153,7 @@ export class Data {
                 counter = 0;
             };
 
-            if (pageCount === 0 && counter + tableHeaderHeight + curentRowHeight > this.startingY - this.continuationFillerHeight) {
+            if (pageCount === 0 && counter + tableHeaderHeight + curentRowHeight > startingY - this.continuationFillerHeight) {
                 pageCount++;
                 counter = 0;
             };
@@ -161,7 +162,7 @@ export class Data {
             const mod = row.map(cell => ({
                 ...cell,
                 page: pageCount,
-                startingY: (this.startingY - tableHeaderHeight) - this.cellLineHeight - counter
+                startingY: (startingY - tableHeaderHeight) - this.cellLineHeight - counter
             }));
 
             modifiedRows[i] = mod;
@@ -256,7 +257,7 @@ export class Table {
         data,
         columns,
         columnWidths,
-        //tABLE
+        //TABLE
         startingX,
         startingY,
         tableType,
@@ -280,7 +281,8 @@ export class Table {
         rowBackgroundColor,
         alternateRowColor,
         alternateRowColorValue,
-        
+        //CELL
+        cellFont,
         cellTextSize,
         cellHeight,
         cellLineHeight,
@@ -288,7 +290,10 @@ export class Table {
         additionalWrapCharacters,
         headerHeight,
         autoHeaderHeight,
-        tableHeight
+        tableHeight,
+        //HEADER
+        headerFont,
+        headerTextSize
     ){
         //super(page)
         this.page = page.page,
@@ -319,13 +324,17 @@ export class Table {
         this.alternateRowColor = alternateRowColor,
         this.alternateRowColorValue = alternateRowColorValue
 
+        this.cellFont = cellFont,
         this.cellTextSize = cellTextSize,
         this.cellHeight = cellHeight,
         this.cellLineHeight = cellLineHeight,
         this.cellTextColor = cellTextColor,
         this.additionalWrapCharacters = additionalWrapCharacters
         this.headerSectionHeight = headerHeight ? headerHeight : autoHeaderHeight
-        this.currentTableHeight = tableHeight
+        this.currentTableHeight = tableHeight,
+        //HEADER
+        this.headerFont = headerFont,
+        this.headerTextSize = headerTextSize
     }
 
     get docPage() {
@@ -424,6 +433,12 @@ export class Table {
             borderOpacity: 1,
         })
     }
+
+
+    
+
+
+    
 };
 
 export class Header {
