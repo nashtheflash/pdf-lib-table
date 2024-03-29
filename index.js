@@ -229,8 +229,6 @@ export async function drawTable({
 
         remaningData = remaningData.slice(table.rows.length);
 
-        console.log(remaningData)
-
         if(remaningData.length > 0) continuationFiller(table.docPage, continuesOnNextPage, continuationTextX, continuationTextY, headerFont, continuationFontSize, continuationFillerHeight, continuationText)
     };
 };
