@@ -2,7 +2,7 @@ export const continuationSection = (page, continuesOnNextPage, continuationX, co
     const getTextWidth = (continuationFont, size, text) => continuationFont.widthOfTextAtSize(text, size);
 
     page.drawText(continuationText, {
-        x: continuationX || ((page.getWidth() - getTextWidth(continuationFont, 18, continuationText) )/ 2),
+        x: continuationX || continuationX === 0 ? continuationX : ((page.getWidth() - getTextWidth(continuationFont, continuationFontSize, continuationText) ) / 2),
         y: continuationY,
         font: continuationFont,
         size: continuationFontSize,

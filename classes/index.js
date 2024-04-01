@@ -298,6 +298,7 @@ export class Table {
         //super(page)
         this.page = page.page,
         this.pageWidth = page.page.getWidth()
+        this.pageHeight = page.page.getHeight()
         this.data = data,
         this.columns = columns,
         this.columnWidths = columnWidths,
@@ -363,6 +364,10 @@ export class Table {
 
     get docStartingY() {
         return this.startingY
+    }
+
+    get remainingTableSpace() {
+        return this.pageHeight - ( this.pageHeight - this.startingY) - (this.currentTableHeight + this.headerSectionHeight)
     }
 
     get rows() {
