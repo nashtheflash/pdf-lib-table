@@ -1,6 +1,4 @@
-import { rgb, rotateAndSkewTextDegreesAndTranslate } from 'pdf-lib';
-import { PDFDocument, StandardFonts, degrees } from 'pdf-lib';
-import { tableColumnWidths, spaceColumns, getMinColumnWidth, getWrapedText, getTextWidth } from "../functions/lib";
+import {spaceColumns, getMinColumnWidth, getWrapedText, getTextWidth } from "../functions/lib";
 
 export class Data {
     constructor
@@ -51,18 +49,6 @@ export class Data {
     tableHeader(columnWidths) {
         if(this.headerHeight) return this.headerHeight;        
         return Math.max(...this.tableHeaders(columnWidths).map(({ headerHeight }) => headerHeight));
-    }
-
-    dataWithHeaders() {
-        // const fulldata = [...this.data];
-
-        // const headerRow = this.columns.reduce((acc, { columnId }) => {
-        //     return { ...acc, [columnId]: columnId };
-        // }, {});
-        
-        // fulldata.unshift(headerRow);
-
-        // return fulldata;
     }
 
    tableColumnWidths(startingX) {
@@ -152,12 +138,13 @@ export class Data {
                 pageCount++;
                 counter = 0;
             };
-
+            
             if (pageCount === 0 && counter + tableHeaderHeight + curentRowHeight > startingY - this.continuationFillerHeight) {
                 pageCount++;
                 counter = 0;
             };
             
+            if(pageCount > loop) return;
 
             const mod = row.map(cell => ({
                 ...cell,
@@ -194,14 +181,6 @@ export class Document {
         this.pageDimensions = pageDimensions
     }
 
-    get totalPages() {
-        return this.pages.length;
-    }
-
-    get document() {
-        return this.pdfDoc;
-    }
-    
     get documentPages() {
         return this.pages;
     }
@@ -210,11 +189,6 @@ export class Document {
         const pg = new Page(this.pdfDoc.addPage(this.pageDimensions, this.pageDimensions, 'app'))
         this.pages.push(pg);
         return pg;
-    }
-
-    async addFont() {
-        console.log(await this.pdfDoc.embedStandardFont(StandardFonts.TimesRoman).widthOfTextAtSize('h', 8))
-        return ;
     }
 }
 
@@ -229,25 +203,6 @@ export class Page {
 
     get page() {
         return this.pdfPage
-    }
-
-    get pageWidth() {
-        return this.pdfPage.getWidth();
-    };
-
-    get pageHeight() {
-        return this.pdfPage.getHeight();
-    };
-
-    get availTableHeight() {
-        if(this.type === 'original') return this.startingY;
-        return this.pageDimensions[0]
-    }
-
-    get availTableWidth() {
-        if(this.type === 'original') return this.startingX;
-        return this.pageDimensions[1]
-
     }
 }
 
@@ -341,18 +296,6 @@ export class Table {
     get docPage() {
         return this.page
     }
-
-    get columnInfo() {
-        return this.columns
-    }
-
-    get columnIds() {
-        return this.columns.map(({ columnId }) => columnId)
-    }
-    
-    get headers() {
-        return this.columns.map(({ header }) => header)
-    }
     
     get tableWidth() {
         return this.maxTableWidth && this.maxTableWidth < (this.pageWidth - this.startingX) ? this.maxTableWidth : (this.pageWidth - this.startingX);
@@ -360,10 +303,6 @@ export class Table {
 
     get tableHeight() {
         return this.maxTableWidth && this.currentTableHeight + this.headerSectionHeight //- this.continuationFillerHeight;
-    }
-
-    get docStartingY() {
-        return this.startingY
     }
 
     get remainingTableSpace() {
@@ -393,14 +332,6 @@ export class Table {
         )
         
         return rows
-    }
-     
-    getPageHeight() {
-        return this.pageHeight;
-    }
-    
-    getPageWidth() {
-        return this.pageWidth;
     }
     
     drawDividerY() {
@@ -491,18 +422,6 @@ export class Header {
         this.headerDividedYThickness = headerDividedYThickness
     }
 
-    get page() {
-        return this.pdfPage
-    }
-
-    get pageWidth() {
-        return this.pdfPage.getWidth();
-    };
-
-    get pageHeight() {
-        return this.pdfPage.getHeight();
-    };
-
     drawHeader(tableWidth) {
         this.drawHeadings();
         this.drawFill(tableWidth);
@@ -582,34 +501,6 @@ export class Header {
 
 };
 
-export class Column {
-    constructor(columnId, columnsInfo, columnWidth){
-        this.columnId = columnId,
-        this.columnInfo = columnsInfo.find((col) => col.columnId = columnId),
-        this.columnWidth = columnWidth
-    }
-
-    get id() {
-        return this.columnId
-    }
-    
-    get header() {
-        return columnInfo.header;
-    }
-    
-    get type() {
-        return columnInfo.type;
-    }
-    
-    get header() {
-        return columnInfo.wrapText;
-    }
-    
-    get width() {
-        return this.columnWidth;
-    };
-}
-
 export class Row {
     constructor(
         page,
@@ -662,10 +553,9 @@ export class Row {
     }
 
     drawRowBackground(index) {
-
         this.page.drawRectangle({
             x: this.startingX,
-            y: this.startingY - this.height + this.cellLineHeight -1.25,
+            y: this.startingY - this.height + this.cellLineHeight - 1.25,
             width: this.tableWidth,
             height: this.height,
             borderWidth: 0,
@@ -676,8 +566,8 @@ export class Row {
 
     drawDividerX() {
         this.page.drawLine({
-            start: { x: this.startingX, y: this.startingY - this.height + this.cellLineHeight -1.25}, //- Math.max(headerHeight, headerFullTextHeight) },
-            end: { x: this.startingX + this.tableWidth, y: this.startingY - this.height + this.cellLineHeight -1.25}, // - Math.max(headerHeight, headerFullTextHeight) },
+            start: { x: this.startingX, y: this.startingY - this.height + this.cellLineHeight - 1.25}, //- Math.max(headerHeight, headerFullTextHeight) },
+            end: { x: this.startingX + this.tableWidth, y: this.startingY - this.height + this.cellLineHeight - 1.25}, // - Math.max(headerHeight, headerFullTextHeight) },
             thickness: this.dividedXThickness,
             color: this.dividedXColor,
             opacity: 1,
@@ -700,15 +590,10 @@ export class Cell {
         this.cellLineHeight = cellLineHeight
     }
 
-    get cell() {
-        return this.data
-    }
-
     drawCell(page) {
         this.drawCellText(page);
     }
-    
-    
+
     drawCellText(page) {
 
         const {values, startingX, startingY} = this.data;

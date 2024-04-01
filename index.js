@@ -8,7 +8,7 @@ import { drawRuler } from 'pdf-lib-utils';
 
 
 
-import { Document, Page, Table, Data, Header, Row} from './classes';
+import { Document, Table, Data, Header } from './classes';
 
 //default colors
 const black = rgb(0, 0, 0);
@@ -126,7 +126,6 @@ export async function drawTable({
         );
         
         const columnWidths = docData.tableColumnWidths(loop === 0 ? startingX : appendedPageStartX, loop === 0 ? startingY : appendedPageStartY);
-        
         const dataProcessor = docData.dataProcessor(columnWidths, loop);
         const headerData = docData.tableHeaders(columnWidths);
         const autoHeaderHeight = docData.tableHeader(columnWidths);
@@ -134,10 +133,10 @@ export async function drawTable({
         const docObj = loop === 0 ? doc.documentPages[0] : doc.addPage();
         const tableData = dataProcessor.data.filter(row => row[0].page === 0);//TODO: refactor because this is slicing data it is always looking for the current page data
         const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue[0].rowHeight,0,);
-
+        
         // drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
         //drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
-
+        
         const table = new Table(
             docObj,
             tableData,
@@ -209,6 +208,7 @@ export async function drawTable({
             
         );
 
+        
         //Draw Table
         if(table.dividedY) table.drawDividerY();
         if(table.tableBoarder) table.drawBoarder();
@@ -217,22 +217,26 @@ export async function drawTable({
         header.drawHeader(table.tableWidth);
         //Rows
         const rows = table.rows;
+        
         rows.forEach((row, index) => {
             //Row
+            // const t6 = performance.now();
             row.drawRowBackground(index);
             if(index !== table.rows.length - 1 && table.dividedX)row.drawDividerX();
             
             //Cells
             row.cells.forEach((cell) => {
                 cell.drawCell(docObj);
-            })
-        })
+            });
+        });
+        
         
         remaningData = remaningData.slice(table.rows.length);
-
+        
         if(remaningData.length > 0) continuationFiller(table.docPage, continuesOnNextPage, continuationTextX, continuationTextY, headerFont, continuationFontSize, continuationFillerHeight, continuationText);
-        if(remaningData.length === 0) endingY = table.remainingTableSpace
+        if(remaningData.length === 0) endingY = table.remainingTableSpace;
     };
+
 
     return {endingY, pages: doc.documentPages};
 };
