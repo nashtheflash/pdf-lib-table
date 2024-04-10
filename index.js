@@ -52,12 +52,20 @@ export async function drawTable({
     continuationFontSize=15, // text font size
     continuationFillerHeight=20, // this is the hight that will be left by the table
     continuationText='Continues on Next Page',
-    //SUB HEADINGS TODO: not suported yet
-    subHeadingBackgroundColor='#8a8584', //TODO: Currently not supported
-    subHeadingHeight=12, //TODO: Currently not supported
-    subHeadingFont='timesnewroman', //TODO: Currently not supported
-    subHeadingTextColor=black, //TODO: Currently not supported
-    subHeadingTextSize='10', //TODO: Currently not supported
+    //SUB HEADINGS
+    subheadingColumns, // Required - No Default - column definitions
+    subHeadingBackgroundColor=blue, //Currently not supported
+    subHeadingHeight=12, //Currently not supported
+    subHeadingFont, //Currently not supported
+    subHeadingTextColor=black, //Currently not supported
+    subHeadingTextSize=10, //Currently not supported
+    subHeadingLineHeight=10,
+    subHeadingDividedX,
+    subHeadingDividedXThickness,
+    subHeadingDividedXColor,
+    subHeadingDividedY,
+    subHeadingDividedYThickness,
+    subHeadingDividedYColor,
     //HEADER SETTINGS
     headerFont, // Required -  No Default - any pdflib standard font
     headerDividedX=true, // Default true - sets if the table header has x dividers
@@ -85,7 +93,7 @@ export async function drawTable({
     cellHeight=11, //TODO: remove this
     cellLineHeight=10,
     cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-    additionalWrapCharacters= ['/']
+    additionalWrapCharacters=['/']
     //cellPaddingBottom=0,
 } = {}) {
     
@@ -102,6 +110,8 @@ export async function drawTable({
     
     //Loop through each page
     for (let loop = 0; loop < remaningData.length; loop++) {
+
+        // console.log('subHeadingBackgroundColor',subHeadingBackgroundColor);
         
         const docData = new Data(
             remaningData, 
@@ -122,7 +132,8 @@ export async function drawTable({
             additionalWrapCharacters, 
             pageDimensions[0],
             pageDimensions,
-            continuationFillerHeight
+            continuationFillerHeight,
+            subheadingColumns,
         );
         
         const columnWidths = docData.tableColumnWidths(loop === 0 ? startingX : appendedPageStartX, loop === 0 ? startingY : appendedPageStartY);
@@ -131,11 +142,13 @@ export async function drawTable({
         const autoHeaderHeight = docData.tableHeader(columnWidths);
         
         const docObj = loop === 0 ? doc.documentPages[0] : doc.addPage();
-        const tableData = dataProcessor.data.filter(row => row[0].page === 0);//TODO: refactor because this is slicing data it is always looking for the current page data
-        const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue[0].rowHeight,0,);
+        const tableData = dataProcessor.data.filter(row => row.values[0].page === 0);//TODO: refactor because this is slicing data it is always looking for the current page data
+        const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue.values[0].rowHeight,0,);
         
         // drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
         //drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
+
+        // console.log('tableData', tableData)
         
         const table = new Table(
             docObj,
@@ -177,7 +190,22 @@ export async function drawTable({
             tableHeight,
             //Header
             headerFont,
-            headerTextSize
+            headerTextSize,
+            //subheadingColumns,
+            //SUB HEADINGS
+            subheadingColumns,
+            subHeadingBackgroundColor,
+            subHeadingHeight,
+            subHeadingFont,
+            subHeadingTextColor,
+            subHeadingTextSize,
+            subHeadingLineHeight,
+            subHeadingDividedX,
+            subHeadingDividedXThickness,
+            subHeadingDividedXColor,
+            subHeadingDividedY,
+            subHeadingDividedYThickness,
+            subHeadingDividedYColor,
         );
     
         const header = new Header(
@@ -210,7 +238,7 @@ export async function drawTable({
 
         
         //Draw Table
-        if(table.dividedY) table.drawDividerY();
+        // if(table.dividedY) table.drawDividerY();
         if(table.tableBoarder) table.drawBoarder();
 
         //Headers 
@@ -222,11 +250,14 @@ export async function drawTable({
             //Row
             // const t6 = performance.now();
             row.drawRowBackground(index);
+            // if(row.type === 'row') row.drawRowBackground(index);
+            // if(row.type === 'subheading' && ) row.drawRowBackground(index);
+
             if(index !== table.rows.length - 1 && table.dividedX)row.drawDividerX();
             
             //Cells
             row.cells.forEach((cell) => {
-                cell.drawCell(docObj);
+                cell.drawCell(docObj, table.dividedY);
             });
         });
         

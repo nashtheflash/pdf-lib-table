@@ -5,7 +5,7 @@ import { getTextWidth } from ".";
  */
 
 export const tableColumnWidths = (data, columns, startingX, startingY, maxTableWidth, pageWidth, cellFont, cellTextSize, additionalWrapCharacters) => {
-
+    
     //this should be the min column width by column
     const minColumnWidth = getMinColumnWidth(data, columns, cellFont, cellTextSize, additionalWrapCharacters);
     const tableWidth = maxTableWidth && maxTableWidth < (pageWidth - startingX) ? maxTableWidth : (pageWidth - startingX);
@@ -32,17 +32,21 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
     //build the rowdata var out for next step
     columns.forEach(({ columnId }) => rowData = {...rowData, [columnId]: []});
     //breakes down all of the strings to words or user specifid brake points
+
+    //console.log('rowData', columns);
    
     
     //Rows
     const dataLength = data.length
-    const rowKeys = Object.keys(data[0]); // Assuming all rows have the same keys
+    let rowKeys = Object.keys(data[0]).filter((item) => item != 'tableRowType'); // Assuming all rows have the same keys
     for (let i = 0; i < dataLength; i++) {
         const row = data[i];
         for (let j = 0; j < rowKeys.length; j++) {
+            
+
             const rowVal = rowKeys[j];
-            const value = row[rowVal];
-            // console.log(rowVal)
+            const value = row[rowVal] || '';
+
             const words = breakWord(value.toString(), additionalWrapCharacters);
             if (!rowData[rowVal]) {
                 rowData[rowVal] = words;

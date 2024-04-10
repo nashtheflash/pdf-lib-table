@@ -21,7 +21,8 @@ export class Data {
         additionalWrapCharacters, 
         pageWidth,
         pageDimensions,
-        continuationFillerHeight
+        continuationFillerHeight,
+        subheadingColumns
     ){
         this.data = data,
         this.columns = columns,
@@ -43,7 +44,32 @@ export class Data {
         this.additionalWrapCharacters  = additionalWrapCharacters,
         this.pageWidth = pageWidth,
         this.pageDimensions = pageDimensions,
-        this.continuationFillerHeight = continuationFillerHeight
+        this.continuationFillerHeight = continuationFillerHeight,
+        this.subheadingColumns = subheadingColumns
+    }
+
+    getData() {
+        return this.data.map((rowItem) => {
+            if(!rowItem.subheading) return {...rowItem, tableRowType: 'row'};
+            if(rowItem.subheading) {
+                
+                const row = {...rowItem.subheading, tableRowType: 'subheading'};
+                
+                Object.keys(row).map((key) => {
+                    if(key === 'tableRowType') return;
+                    
+                    const parent = this.subheadingColumns.find(({ columnId }) => columnId == key).parentId;
+                    //console.log(parent)
+                    row[parent] = row[key];
+                    delete row[key];
+                });
+                
+                let rowTemplate;
+                this.columnIds.forEach((id) => rowTemplate = {...rowTemplate, [id] : ''});
+                
+                return {...rowTemplate, ...row};
+            }
+        })
     }
 
     tableHeader(columnWidths) {
@@ -51,9 +77,9 @@ export class Data {
         return Math.max(...this.tableHeaders(columnWidths).map(({ headerHeight }) => headerHeight));
     }
 
-   tableColumnWidths(startingX) {
+    tableColumnWidths(startingX) {
         //this should be the min column width by column
-        const minColumnWidth = getMinColumnWidth(this.data, this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters);
+        const minColumnWidth = getMinColumnWidth(this.getData(), this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters);
         const tableWidth = this.maxTableWidth && this.maxTableWidth < (this.pageWidth - startingX) ? this.maxTableWidth : (this.pageWidth - startingX);
         const finalSizing = spaceColumns(minColumnWidth, this.columns, tableWidth);
         return finalSizing;
@@ -61,7 +87,8 @@ export class Data {
 
     tableCells(columnWidths, loop){
     
-        return this.data.map((row, rowIndex) => {
+        return this.getData().map((row, rowIndex) => {
+            //console.log('this.getData', this.getData())
             let xCounter = loop === 0 ? this.startingX : this.appendedPageStartX;
             return Object.keys(row).map(col => {
                 const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
@@ -76,6 +103,7 @@ export class Data {
                     cellHeight: this.cellLineHeight * cellValues.length,
                     values: [...cellValues]
                 };
+
                 xCounter += columnWidths[col];
                 return cell;
             });
@@ -102,7 +130,8 @@ export class Data {
     }
     
     tableRows(columnWidths) {
-        const rowdata = this.data.map(row => {
+        //console.log('this.data', this.data)
+        const rowdata = this.getData().map(row => {
             const longestItem = Object.keys(row).reduce((longest, col) => {
                 const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
                 return wrappedText.length > longest.length ? wrappedText : longest;
@@ -119,6 +148,8 @@ export class Data {
         const rHeight = this.tableRows(columnWidths);
         const rowDetail = [...this.tableCells(columnWidths, loop)];
         const tableHeaderHeight = this.tableHeader(columnWidths);
+
+        // console.log(rowDetail);
 
         const startingY = loop === 0 ? this.startingY : this.appendedPageStartY;
         
@@ -146,13 +177,20 @@ export class Data {
             
             if(pageCount > loop) return;
 
-            const mod = row.map(cell => ({
+            // console.log(row)
+            const rowType = row.find(({ colID }) => colID == "tableRowType").values.join('');
+            const rowFiltered = row.filter(({ colID }) => colID !== "tableRowType");
+
+            const mod = rowFiltered.map(cell => ({
                 ...cell,
                 page: pageCount,
                 startingY: (startingY - tableHeaderHeight) - this.cellLineHeight - counter
             }));
 
-            modifiedRows[i] = mod;
+            // console.log({values: mod, type: rowType})
+
+            modifiedRows[i] = {values: mod, type: rowType};
+            // modifiedRows[i] = mod;
             counter += curentRowHeight;
         });
 
@@ -248,7 +286,21 @@ export class Table {
         tableHeight,
         //HEADER
         headerFont,
-        headerTextSize
+        headerTextSize,
+        //SUB HEADINGS
+        subheadingColumns,
+        subHeadingBackgroundColor,
+        subHeadingHeight,
+        subHeadingFont,
+        subHeadingTextColor,
+        subHeadingTextSize,
+        subHeadingLineHeight,
+        subHeadingDividedX,
+        subHeadingDividedXThickness,
+        subHeadingDividedXColor,
+        subHeadingDividedY,
+        subHeadingDividedYThickness,
+        subHeadingDividedYColor,
     ){
         //super(page)
         this.page = page.page,
@@ -290,7 +342,21 @@ export class Table {
         this.currentTableHeight = tableHeight,
         //HEADER
         this.headerFont = headerFont,
-        this.headerTextSize = headerTextSize
+        this.headerTextSize = headerTextSize,
+        //SUBHEADERS
+        this.subheadingColumns = subheadingColumns,
+        this.subHeadingBackgroundColor = subHeadingBackgroundColor,
+        this.subHeadingHeight = subHeadingHeight,
+        this.subHeadingFont = subHeadingFont,
+        this.subHeadingTextColor = subHeadingTextColor,
+        this.subHeadingTextSize = subHeadingTextSize,
+        this.subHeadingLineHeight = subHeadingLineHeight,
+        this.subHeadingDividedX = subHeadingDividedX,
+        this.subHeadingDividedXThickness = subHeadingDividedXThickness,
+        this.subHeadingDividedXColor = subHeadingDividedXColor,
+        this.subHeadingDividedY = subHeadingDividedY,
+        this.subHeadingDividedYThickness = subHeadingDividedYThickness,
+        this.subHeadingDividedYColor = subHeadingDividedYColor
     }
 
     get docPage() {
@@ -312,47 +378,76 @@ export class Table {
     get rows() {
         const rows = [];
 
-        this.data.forEach(row => rows.push(
-                new Row(
-                    this.page, row,  
-                    this.startingX,
-                    this.dividedXThickness,
-                    this.dividedXColor,
-                    this.tableWidth, 
-                    this.rowBackgroundColor, 
-                    this.alternateRowColor, 
-                    this.alternateRowColorValue, 
-                    //Cell
-                    this.cellFont,
-                    this.cellTextColor,
-                    this.cellTextSize,
-                    this.cellLineHeight
-                )
-            )
+        // console.log(this.data);
+
+        this.data.forEach(row => {
+                //console.log(row)
+                let newRow;
+
+                if(row.type === 'row') {
+                    newRow = new Row(
+                        this.page, 
+                        row.values,
+                        row.type,
+                        this.startingX,
+                        this.dividedXThickness,
+                        this.dividedXColor,
+                        this.tableWidth, 
+                        this.rowBackgroundColor, 
+                        this.alternateRowColor, 
+                        this.alternateRowColorValue, 
+                        //Cell
+                        this.cellFont,
+                        this.cellTextColor,
+                        this.cellTextSize,
+                        this.cellLineHeight,
+                        this.dividedYThickness,
+                        this.dividedYColor
+                    )
+                }
+
+                if(row.type === 'subheading') {
+                    newRow = new SubheaderRow(
+                        this.page, 
+                        row.values,
+                        row.type,
+                        this.startingX,
+                        this.dividedXThickness,
+                        this.dividedXColor,
+                        this.tableWidth, 
+                        this.rowBackgroundColor, 
+                        this.alternateRowColor, 
+                        this.alternateRowColorValue, 
+                        //Cell
+                        this.cellFont,
+                        this.cellTextColor,
+                        this.cellTextSize,
+                        this.cellLineHeight,
+                        this.dividedYThickness,
+                        this.dividedYColor,
+                        //Subheading
+                        this.subheadingColumns,
+                        this.subHeadingBackgroundColor,
+                        this.subHeadingHeight,
+                        this.subHeadingFont,
+                        this.subHeadingTextColor,
+                        this.subHeadingTextSize,
+                        this.subHeadingLineHeight,
+                        this.subHeadingDividedX,
+                        this.subHeadingDividedXThickness,
+                        this.subHeadingDividedXColor,
+                        this.subHeadingDividedY,
+                        this.subHeadingDividedYThickness,
+                        this.subHeadingDividedYColor,
+                    )
+                }
+                
+                
+                rows.push(newRow)
+            }
         )
         
         return rows
-    }
-    
-    drawDividerY() {
-        let counter = 0
-        const keys = Object.keys(this.columnWidths);
-        
-        keys.forEach((col, i) => {
-            const dividerX = this.columnWidths[col] + counter;
-
-            if(i !== keys.length - 1) {
-                this.docPage.drawLine({
-                    start: { x: this.startingX + dividerX, y: this.startingY - this.headerSectionHeight},
-                    end: { x: this.startingX + dividerX, y: this.startingY - this.tableHeight}, //Math.max(headerHeight, headerFullTextHeight) },
-                    thickness: this.dividedYThickness,
-                    color: this.dividedYColor,
-                    opacity: 0.75,
-                });
-            }
-
-            counter += this.columnWidths[col];
-        })
     }
     
     drawBoarder() {
@@ -505,6 +600,7 @@ export class Row {
     constructor(
         page,
         rowData,
+        type,
         startingX,
         dividedXThickness,
         dividedXColor,
@@ -520,6 +616,7 @@ export class Row {
     ){  
         this.page = page,
         this.rowData = rowData
+        this._type = type,
         this.startingX = startingX,
         this.dividedXThickness = dividedXThickness,
         this.dividedXColor = dividedXColor,
@@ -536,15 +633,23 @@ export class Row {
         this.cellLineHeight = cellLineHeight
     }
 
+    get type() {
+        return this._type;
+    }
+
     get cells() {
         const cells = [];
         this.rowData.forEach(cell => cells.push(
                 new Cell(
                     cell,
+                    this._type,
                     this.cellFont,
                     this.cellTextColor,
                     this.cellTextSize,
-                    this.cellLineHeight
+                    this.cellLineHeight,
+                    this.dividedYThickness,
+                    this.dividedYColor,
+                    this.height,
                 )
             )
         )
@@ -559,7 +664,7 @@ export class Row {
             width: this.tableWidth,
             height: this.height,
             borderWidth: 0,
-            color: index % 2 !== 0 &&  this.alternateRowColor ? this.alternateRowColorValue : this.rowBackgroundColor,
+            color: index % 2 !== 0 && this.alternateRowColor ? this.alternateRowColorValue : this.rowBackgroundColor,
             opacity: 0.25
         });
     }
@@ -573,25 +678,167 @@ export class Row {
             opacity: 1,
         });
     }
+
+    
+
+}
+
+export class SubheaderRow {
+    constructor(
+        page, 
+        rowData,
+        type,
+        startingX,
+        dividedXThickness,
+        dividedXColor,
+        tableWidth, 
+        rowBackgroundColor, 
+        alternateRowColor, 
+        alternateRowColorValue, 
+        //Cell
+        cellFont,
+        cellTextColor,
+        cellTextSize,
+        cellLineHeight,
+        dividedYThickness,
+        dividedYColor,
+        //Subheading
+        subheadingColumns,
+        subHeadingBackgroundColor,
+        subHeadingHeight,
+        subHeadingFont,
+        subHeadingTextColor,
+        subHeadingTextSize,
+        subHeadingLineHeight,
+        subHeadingDividedX,
+        subHeadingDividedXThickness,
+        subHeadingDividedXColor,
+        subHeadingDividedY,
+        subHeadingDividedYThickness,
+        subHeadingDividedYColor,
+    ){  
+        this.page = page,
+        this.rowData = rowData
+        this._type = type,
+        this.startingX = startingX,
+        this.dividedXThickness = dividedXThickness,
+        this.dividedXColor = dividedXColor,
+        this.tableWidth = tableWidth,
+        this.rowBackgroundColor = rowBackgroundColor,
+        this.alternateRowColor = alternateRowColor,
+        this.alternateRowColorValue = alternateRowColorValue
+        this.height = rowData[0].rowHeight,
+        this.startingY = rowData[0].startingY,
+        //Cell
+        this.cellFont = cellFont,
+        this.cellTextColor = cellTextColor,
+        this.cellTextSize = cellTextSize,
+        this.cellLineHeight = cellLineHeight,
+        this.dividedYThickness = dividedYThickness,
+        this.dividedYColor = dividedYColor,
+        //Subheading
+        this.subheadingColumns = subheadingColumns,
+        this.subHeadingBackgroundColor = subHeadingBackgroundColor,
+        this.subHeadingHeight = subHeadingHeight,
+        this.subHeadingFont = subHeadingFont,
+        this.subHeadingTextColor = subHeadingTextColor,
+        this.subHeadingTextSize = subHeadingTextSize,
+        this.subHeadingLineHeight = subHeadingLineHeight,
+        this.subHeadingDividedX = subHeadingDividedX,
+        this.subHeadingDividedXThickness = subHeadingDividedXThickness,
+        this.subHeadingDividedXColor = subHeadingDividedXColor,
+        this.subHeadingDividedY = subHeadingDividedY,
+        this.subHeadingDividedYThickness = subHeadingDividedYThickness,
+        this.subHeadingDividedYColor = subHeadingDividedYColor
+    }
+
+    get type() {
+        return this._type;
+    }
+
+    get cells() {
+        const cells = [];
+        this.rowData.forEach(cell => cells.push(
+                new SubheaderCell(
+                    cell,
+                    this._type,
+                    this.cellFont,
+                    this.cellTextColor,
+                    this.cellTextSize,
+                    this.cellLineHeight,
+                    this.dividedYThickness,
+                    this.dividedYColor,
+                    this.height,
+                    //Subheading
+                    this.subheadingColumns,
+                    this.subHeadingBackgroundColor,
+                    this.subHeadingHeight,
+                    this.subHeadingFont,
+                    this.subHeadingTextColor,
+                    this.subHeadingTextSize,
+                    this.subHeadingLineHeight,
+                    this.subHeadingDividedX,
+                    this.subHeadingDividedXThickness,
+                    this.subHeadingDividedXColor,
+                    this.subHeadingDividedY,
+                    this.subHeadingDividedYThickness,
+                    this.subHeadingDividedYColor,
+                )
+            )
+        )
+        
+        return cells
+    }
+
+    drawRowBackground() {
+        this.page.drawRectangle({
+            x: this.startingX,
+            y: this.startingY - this.height + this.subHeadingLineHeight - 1.25,
+            width: this.tableWidth,
+            height: this.height,
+            borderWidth: 0,
+            color: this.subHeadingBackgroundColor,
+            opacity: 0.25
+        });
+    }
+
+    drawDividerX() {
+        this.page.drawLine({
+            start: { x: this.startingX, y: this.startingY - this.height + this.subHeadingLineHeight - 1.25}, //- Math.max(headerHeight, headerFullTextHeight) },
+            end: { x: this.startingX + this.tableWidth, y: this.startingY - this.height + this.subHeadingLineHeight - 1.25}, // - Math.max(headerHeight, headerFullTextHeight) },
+            thickness: this.subHeadingDividedXThickness,
+            color: this.subHeadingDividedXColor,
+            opacity: 1,
+        });
+    }
 }
 
 export class Cell {
     constructor(
         celldata,
+        celltype,
         cellFont,
         cellTextColor,
         cellTextSize,
-        cellLineHeight
+        cellLineHeight,
+        dividedYThickness,
+        dividedYColor,
+        rowHeight,
     ){
-        this.data = celldata
+        this.data = celldata,
+        this.celltype = celltype,
         this.cellFont = cellFont,
         this.cellTextColor = cellTextColor,
         this.cellTextSize = cellTextSize,
-        this.cellLineHeight = cellLineHeight
+        this.cellLineHeight = cellLineHeight,
+        this.dividedYThickness = dividedYThickness,
+        this.dividedYColor = dividedYColor,
+        this.rowHeight = rowHeight
     }
 
-    drawCell(page) {
+    drawCell(page, dividedY) {
         this.drawCellText(page);
+        if(dividedY) this.drawDividerY(page);
     }
 
     drawCellText(page) {
@@ -608,5 +855,102 @@ export class Cell {
                 color: this.cellTextColor
             });
         })
+    }
+
+    drawDividerY(page) {
+        const { startingX, startingY} = this.data;
+        
+        page.page.drawLine({
+            start: { x: startingX, y: startingY + this.cellLineHeight},
+            end: { x: startingX, y: startingY - this.rowHeight + this.cellLineHeight},
+            thickness: this.dividedYThickness,
+            color: this.dividedYColor,
+            opacity: 0.75,
+        }); 
+    }
+}
+
+export class SubheaderCell {
+    constructor(
+        celldata,
+        celltype,
+        cellFont,
+        cellTextColor,
+        cellTextSize,
+        cellLineHeight,
+        dividedYThickness,
+        dividedYColor,
+        rowHeight,
+        //Subheading
+        subheadingColumns,
+        subHeadingBackgroundColor,
+        subHeadingHeight,
+        subHeadingFont,
+        subHeadingTextColor,
+        subHeadingTextSize,
+        subHeadingLineHeight,
+        subHeadingDividedX,
+        subHeadingDividedXThickness,
+        subHeadingDividedXColor,
+        subHeadingDividedY,
+        subHeadingDividedYThickness,
+        subHeadingDividedYColor
+    ){
+        this.data = celldata,
+        this.celltype = celltype,
+        this.cellFont = cellFont,
+        this.cellTextColor = cellTextColor,
+        this.cellTextSize = cellTextSize,
+        this.cellLineHeight = cellLineHeight,
+        this.dividedYThickness = dividedYThickness,
+        this.dividedYColor = dividedYColor,
+        this.rowHeight = rowHeight
+        //Subheading
+        this.subheadingColumns = subheadingColumns,
+        this.subHeadingBackgroundColor = subHeadingBackgroundColor,
+        this.subHeadingHeight = subHeadingHeight,
+        this.subHeadingFont = subHeadingFont,
+        this.subHeadingTextColor = subHeadingTextColor,
+        this.subHeadingTextSize = subHeadingTextSize,
+        this.subHeadingLineHeight = subHeadingLineHeight,
+        this.subHeadingDividedX = subHeadingDividedX,
+        this.subHeadingDividedXThickness = subHeadingDividedXThickness,
+        this.subHeadingDividedXColor = subHeadingDividedXColor,
+        this.subHeadingDividedY = subHeadingDividedY,
+        this.subHeadingDividedYThickness = subHeadingDividedYThickness,
+        this.subHeadingDividedYColor = subHeadingDividedYColor
+    }
+
+    drawCell(page, dividedY) {
+        this.drawCellText(page);
+        if(dividedY) this.drawDividerY(page);
+    }
+
+    drawCellText(page) {
+
+        const {values, startingX, startingY} = this.data;
+
+        values.forEach((text, i) => {
+            page.page.drawText(text, {
+                x: startingX,
+                y: startingY - (this.subHeadingLineHeight * i),
+                font: this.subHeadingFont,
+                size: this.subHeadingTextSize,
+                lineHeight: this.subHeadingLineHeight, //TODO: add this
+                color: this.subHeadingTextColor
+            });
+        })
+    }
+
+    drawDividerY(page) { //TODO: add this
+        const { startingX, startingY} = this.data;
+        
+        page.page.drawLine({
+            start: { x: startingX, y: startingY + this.subHeadingLineHeight},
+            end: { x: startingX, y: startingY - this.rowHeight + this.subHeadingLineHeight},
+            thickness: this.subHeadingDividedYThickness, //TODO: add this
+            color: this.subHeadingDividedYColor, //TODO: add this
+            opacity: 0.75,
+        }); 
     }
 }
