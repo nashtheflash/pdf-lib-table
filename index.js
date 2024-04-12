@@ -134,6 +134,9 @@ export async function drawTable({
             pageDimensions,
             continuationFillerHeight,
             subheadingColumns,
+            subHeadingFont,
+            subHeadingTextSize,
+            subHeadingLineHeight,
         );
         
         const columnWidths = docData.tableColumnWidths(loop === 0 ? startingX : appendedPageStartX, loop === 0 ? startingY : appendedPageStartY);
@@ -142,11 +145,11 @@ export async function drawTable({
         const autoHeaderHeight = docData.tableHeader(columnWidths);
         
         const docObj = loop === 0 ? doc.documentPages[0] : doc.addPage();
-        const tableData = dataProcessor.data.filter(row => row.values[0].page === 0);//TODO: refactor because this is slicing data it is always looking for the current page data
+        const tableData = dataProcessor.data.filter(row => row.values[0] && row.values[0].page === 0);//TODO: refactor because this is slicing data it is always looking for the current page data
         const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue.values[0].rowHeight,0,);
         
-        // drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
-        //drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
+        drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
+        drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
 
         // console.log('tableData', tableData)
         

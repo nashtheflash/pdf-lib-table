@@ -22,7 +22,10 @@ export class Data {
         pageWidth,
         pageDimensions,
         continuationFillerHeight,
-        subheadingColumns
+        subheadingColumns,
+        subHeadingFont,
+        subHeadingTextSize,
+        subHeadingLineHeight,
     ){
         this.data = data,
         this.columns = columns,
@@ -46,6 +49,9 @@ export class Data {
         this.pageDimensions = pageDimensions,
         this.continuationFillerHeight = continuationFillerHeight,
         this.subheadingColumns = subheadingColumns
+        this.subHeadingFont = subHeadingFont,
+        this.subHeadingTextSize = subHeadingTextSize,
+        this.subHeadingLineHeight = subHeadingLineHeight
     }
 
     getData() {
@@ -91,16 +97,19 @@ export class Data {
             //console.log('this.getData', this.getData())
             let xCounter = loop === 0 ? this.startingX : this.appendedPageStartX;
             return Object.keys(row).map(col => {
-                const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
+                //const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
+                const cellValues = row.tableRowType == 'row' ? 
+                    getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters) : 
+                    getWrapedText(this.subHeadingFont, this.subHeadingTextSize, columnWidths[col], row[col], this.additionalWrapCharacters) ; 
 
                 const cell = {
                     colID: col,
                     rowId: rowIndex,
                     startingX: xCounter,
-                    font: this.cellFont,
-                    textHeight: this.cellTextSize,
-                    lineHeight: this.cellLineHeight,
-                    cellHeight: this.cellLineHeight * cellValues.length,
+                    font: row.tableRowType == 'row' ? this.cellFont : this.subHeadingFont,
+                    textHeight: row.tableRowType == 'row' ? this.cellTextSize : this.subHeadingTextSize,
+                    lineHeight: row.tableRowType == 'row' ? this.cellLineHeight : this.subHeadingLineHeight,
+                    cellHeight: row.tableRowType == 'row' ? this.cellLineHeight * cellValues.length : this.subHeadingLineHeight * cellValues.length,
                     values: [...cellValues]
                 };
 
@@ -133,11 +142,17 @@ export class Data {
         //console.log('this.data', this.data)
         const rowdata = this.getData().map(row => {
             const longestItem = Object.keys(row).reduce((longest, col) => {
-                const wrappedText = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
+                const wrappedText = row.tableRowType == 'row' ? 
+                    getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters) : 
+                    getWrapedText(this.subHeadingFont, this.subHeadingTextSize, columnWidths[col], row[col], this.additionalWrapCharacters) ; 
                 return wrappedText.length > longest.length ? wrappedText : longest;
             }, []);
+
+            //if(row.tableRowType !== 'row') console.log((row.tableRowType == 'row' ? this.cellLineHeight : this.subHeadingLineHeight))
+
+
             return {
-                rowHeight: longestItem.length * this.cellLineHeight
+                rowHeight: longestItem.length * (row.tableRowType == 'row' ? this.cellLineHeight : this.subHeadingLineHeight)
             };
         });
         
@@ -176,15 +191,16 @@ export class Data {
             };
             
             if(pageCount > loop) return;
-
+            
             // console.log(row)
             const rowType = row.find(({ colID }) => colID == "tableRowType").values.join('');
             const rowFiltered = row.filter(({ colID }) => colID !== "tableRowType");
 
+
             const mod = rowFiltered.map(cell => ({
                 ...cell,
                 page: pageCount,
-                startingY: (startingY - tableHeaderHeight) - this.cellLineHeight - counter
+                startingY: (startingY - tableHeaderHeight) - (rowType === 'row' ? this.cellLineHeight : this.subHeadingLineHeight) - counter
             }));
 
             // console.log({values: mod, type: rowType})
@@ -639,6 +655,7 @@ export class Row {
 
     get cells() {
         const cells = [];
+        
         this.rowData.forEach(cell => cells.push(
                 new Cell(
                     cell,
@@ -650,6 +667,7 @@ export class Row {
                     this.dividedYThickness,
                     this.dividedYColor,
                     this.height,
+                    this.startingX
                 )
             )
         )
@@ -783,6 +801,7 @@ export class SubheaderRow {
                     this.subHeadingDividedY,
                     this.subHeadingDividedYThickness,
                     this.subHeadingDividedYColor,
+                    this.startingX
                 )
             )
         )
@@ -790,7 +809,7 @@ export class SubheaderRow {
         return cells
     }
 
-    drawRowBackground() {
+    drawRowBackground(index) {
         this.page.drawRectangle({
             x: this.startingX,
             y: this.startingY - this.height + this.subHeadingLineHeight - 1.25,
@@ -824,6 +843,7 @@ export class Cell {
         dividedYThickness,
         dividedYColor,
         rowHeight,
+        tableStartingX
     ){
         this.data = celldata,
         this.celltype = celltype,
@@ -833,7 +853,8 @@ export class Cell {
         this.cellLineHeight = cellLineHeight,
         this.dividedYThickness = dividedYThickness,
         this.dividedYColor = dividedYColor,
-        this.rowHeight = rowHeight
+        this.rowHeight = rowHeight,
+        this.tableStartingX = tableStartingX
     }
 
     drawCell(page, dividedY) {
@@ -858,7 +879,9 @@ export class Cell {
     }
 
     drawDividerY(page) {
+    
         const { startingX, startingY} = this.data;
+        if(this.tableStartingX == startingX) return;
         
         page.page.drawLine({
             start: { x: startingX, y: startingY + this.cellLineHeight},
