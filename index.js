@@ -6,17 +6,20 @@ import { rgb } from 'pdf-lib';
 import { continuationSection } from './fillers';
 import { drawRuler } from 'pdf-lib-utils';
 
-import { checkUserInputs } from './functions/newLib'
+import { checkUserInputs, processorData } from './functions/newLib'
+import { calcColumnWidths, calcColumnHeaderWidths } from './functions/newLib/dataProcessing';
 
 
 
-import { Document, Table, Data, Header } from './classes';
+import { Doc, Table, Data, Header } from './classes';
 
 //default colors
 const black = rgb(0, 0, 0);
 const white = rgb(1, 1, 1);
 const blue = rgb(.21, .24, .85);
 const grey = rgb(.03, .03, .03);
+
+import {Document} from './classes/documents/document'
 
 export async function drawTable({
     data, // Required - No Default - data t be printed
@@ -99,7 +102,7 @@ export async function drawTable({
     //cellPaddingBottom=0,
 } = {}) {
     
-    const doc = new Document(
+    const doc = new Doc(
         page,
         pdfDoc,
         startingX,
@@ -112,7 +115,7 @@ export async function drawTable({
     
     //Loop through each page
     for (let loop = 0; loop < remaningData.length; loop++) {
-        console.log('loop', loop)
+        //console.log('loop', loop)
 
         // console.log('subHeadingBackgroundColor',subHeadingBackgroundColor);
         
@@ -288,91 +291,105 @@ export async function drawTable({
 };
 
 
-export async function drawTable2({
-    data, // Required - No Default - data t be printed
+export async function drawTable2(
+    tableData, // Required - No Default - data t be printed
     page, // Required - No Default - page provided by pdf-lib
     pdfDoc, // Required - No Default - pdfDoc that the table will be printed on
-    fonts,
     columns, // Required - No Default - column definitions
-    pageDimensions=[792.0, 612.0],
-    //TABLE SETTINGS
-    startingX=0, // Default 0 - Default 0 - the starting x coordinate
-    startingY=612, // Default 0 - the starting y coordinate
-    appendedPageStartX=100,
-    appendedPageStartY=512,
-    appendedMaxTableWidth=500,
-    tableType='vertical', // Default 'vertical' - Options: vertical || horizontal || 2way TODO: horizontal || 2way not suported yet
-    dividedX=true, // Default true - sets if the table has x dividers
-    dividedY=true, // Default true - sets if the table has y dividers
-    dividedXColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-    dividedYColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-    dividedXThickness=1, // Default 1 - sets x divider thickness
-    dividedYThickness=1, // Default 1 - sets y divider thickness
-    maxTableWidth=false, // Default false - table is defaulted to page width but a max value can be passed
-    maxTableHeight=false, // Default false - table is defaulted to page height but a max value can be passed
-    rowHeightSizing='auto', // Default 'auto' //TODO: remove this.
-    tableBoarder=true, // Default true - tables have a boader by default but it can be removed by passing false
-    tableBoarderThickness=1, // Default 1 - sets the thickness of the table boarder
-    tableBoarderColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-    rounded=false, //TODO: add or remove this option. Currently not supported
-    //CONTINUES
-    continuesOnNextPage=false, // Default false - can pass a function for what to draw //TODO: add this.
-    continuationFiller=(page, continuesOnNextPage, continuationX, continuationY, continuationFont, continuationFontSize, continuationFillerHeight, continuationText) => continuationSection(page, continuesOnNextPage, continuationX, continuationY, continuationFont, continuationFontSize, continuationFillerHeight, continuationText),
-    continuationTextX = undefined, // Text starting X
-    continuationTextY=10, //Text starting Y
-    continuationFont=undefined, // Text font
-    continuationFontSize=15, // text font size
-    continuationFillerHeight=20, // this is the hight that will be left by the table
-    continuationText='Continues on Next Page',
-    //SUB HEADINGS
-    subheadingColumns, // Required - No Default - column definitions
-    subHeadingBackgroundColor=blue, //Currently not supported
-    subHeadingHeight=12, //Currently not supported
-    subHeadingFont, //Currently not supported
-    subHeadingTextColor=black, //Currently not supported
-    subHeadingTextSize=10, //Currently not supported
-    subHeadingLineHeight=10,
-    subHeadingDividedX,
-    subHeadingDividedXThickness,
-    subHeadingDividedXColor,
-    subHeadingDividedY,
-    subHeadingDividedYThickness,
-    subHeadingDividedYColor,
-    //HEADER SETTINGS
-    headerFont, // Required -  No Default - any pdflib standard font
-    headerDividedX=true, // Default true - sets if the table header has x dividers
-    headerDividedY=true, // Default true - sets if the table header has y divider
-    headerDividedXColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-    headerDividedYColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-    headerDividedXThickness=1, // Default 1 - sets the thickness of the table header x divider
-    headerDividedYThickness=1, // Default 1 - sets the thickness of the table header y divider
-    headerBackgroundColor=grey, // Default - rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
-    headerHeight=undefined, // Default 10 - height of the table header
-    headerTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-    headerTextSize=10, // Default 10 - table header text size
-    headerLineHeight=10,
-    headerTextAlignment='left', // Default 'left' - left/right/center 
-    headerTextJustification='top', //Default 'top' - top/center/bottom
-    headerWrapText=false, // Default false - allows text in the header to wrap
-    //ROWSETTINGS
-    rowBackgroundColor=white, //rgb(1, 1, 1) - can pass in any pdf-lib rgb value
-    alternateRowColor=true, // Default true - cell rows will alternate background color
-    alternateRowColorValue=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
-    
-    //CELL SETTINGS
-    cellFont, // Required -  No Default - any pdflib standard font
-    cellTextSize=10, // Default 10 - cell text size
-    cellHeight=11, //TODO: remove this
-    cellLineHeight=10,
-    cellTextColor=black, // Default rgb(0,0,0) - can pass in any pdf-lib rgb value
-    additionalWrapCharacters=['/']
-    //cellPaddingBottom=0,
-} = {}) {
+    fonts,
+    colors,
+    options = {
+        pageDimensions,
+        //TABLE SETTINGS
+        startingX,
+        startingY,
+        appendedPageStartX,
+        appendedPageStartY,
+        appendedMaxTableWidth,
+        tableType,
+        dividedX,
+        dividedY,
+        dividedXColor,
+        dividedYColor,
+        dividedXThickness,
+        dividedYThickness,
+        maxTableWidth,
+        maxTableHeight,
+        rowHeightSizing,
+        tableBoarder,
+        tableBoarderThickness,
+        tableBoarderColor,
+        rounded,
+        //CONTINUES
+        continuesOnNextPage,
+        continuationFiller,
+        continuationTextX ,
+        continuationTextY,
+        continuationFont,
+        continuationFontSize,
+        continuationFillerHeight,
+        continuationText,
+        //SUB HEADINGS
+        subheadingColumns, // Required - No Default - column definitions
+        subHeadingBackgroundColor,
+        subHeadingHeight,
+        subHeadingFont, //Currently not supported
+        subHeadingTextColor,
+        subHeadingTextSize,
+        subHeadingLineHeight,
+        subHeadingDividedX,
+        subHeadingDividedXThickness,
+        subHeadingDividedXColor,
+        subHeadingDividedY,
+        subHeadingDividedYThickness,
+        subHeadingDividedYColor,
+        //HEADER SETTINGS
+        headerFont, // Required -  No Default - any pdflib standard font
+        headerDividedX,
+        headerDividedY,
+        headerDividedXColor,
+        headerDividedYColor,
+        headerDividedXThickness,
+        headerDividedYThickness,
+        headerBackgroundColor,
+        headerHeight,
+        headerTextColor,
+        headerTextSize,
+        headerLineHeight,
+        headerTextAlignment,
+        headerTextJustification,
+        headerWrapText,
+        //ROWSETTINGS
+        rowBackgroundColor,
+        alternateRowColor,
+        alternateRowColorValue,
+        
+        //CELL SETTINGS
+        cellFont, // Required -  No Default - any pdflib standard font
+        cellTextSize,
+        cellHeight,
+        cellLineHeight,
+        cellTextColor,
+        additionalWrapCharacters,
+        //cellPaddingBottom=0,
+    } = {}) {
 
     //Through errors if inputs are bad
     const error = checkUserInputs(arguments);
     if(error) return error;
 
+    // build the document
+    const document = new Document(page, pdfDoc, fonts, colors);
 
-    
+    //process data
+    const columnHeaderWidths = calcColumnHeaderWidths(columns, options);        //sets the initial width of the columns based on the size of the header
+    const columnDimensions = calcColumnWidths(tableData, options, columnHeaderWidths);
+
+    //add pages
+    //add tables
+
+
+
+
+    return document;
 };

@@ -220,7 +220,7 @@ export class Data {
 }
 
 
-export class Document {
+export class Doc {
     constructor
     (
         page,

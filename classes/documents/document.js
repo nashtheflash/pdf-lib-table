@@ -1,16 +1,19 @@
+import {Page} from './page'
+
 export class Document {
     constructor
     (
-        initialPages,
+        initialPage,
         pdfDoc,
         fonts,
-        pageDimensions,
+        colors
     ){
-        this._initialPages = initialPages,
+        this._initialPage = initialPage,
         this._pdfDoc = pdfDoc,
-        this._pages = [new Page(page)],
-        this._fonts = fonts
-        this._apendedPageDimensions = pageDimensions
+        this._fonts = fonts,
+        this._colors = colors
+        this._pages = [new Page(initialPage)],
+        this._tables = []
     }
 
     get pages() {
@@ -21,9 +24,20 @@ export class Document {
         return this._pages;
     }
 
-    addPage() {
-        const pg = new Page(this.pdfDoc.addPage(this.pageDimensions, this.pageDimensions, 'app'))
+    addPage(page) {
+        const pg = new Page(page)
+        
         this.pages.push(pg);
+        
         return pg;
+    }
+
+    drawVerticalTables() {
+        //console.log('Drawing tables')
+
+    }
+
+    drawHorizontalTables() {
+        
     }
 }
