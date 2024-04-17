@@ -25,28 +25,28 @@ export const spaceColumns = (minColumnWidth, columns, tableWidth) => {
     return finalSizing;
 };
 
-export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerFont, headerTextSize, additionalWrapCharacters) => {
+export const getMinColumnWidth = (data, columns, columnIds, cellFont, cellTextSize, headerFont, headerTextSize, additionalWrapCharacters) => {
     let rowData = {};
     let headerData = {};
 
     //build the rowdata var out for next step
     columns.forEach(({ columnId }) => rowData = {...rowData, [columnId]: []});
+    // rowData.filter((col) => )
     //breakes down all of the strings to words or user specifid brake points
 
-    //console.log('rowData', columns);
-   
+    
     
     //Rows
     const dataLength = data.length
-    let rowKeys = Object.keys(data[0]).filter((item) => item != 'tableRowType'); // Assuming all rows have the same keys
+    let rowKeys = columnIds.filter((item) => item != 'tableRowType'); // Assuming all rows have the same keys
     for (let i = 0; i < dataLength; i++) {
         const row = data[i];
         for (let j = 0; j < rowKeys.length; j++) {
             
-
+            
             const rowVal = rowKeys[j];
             const value = row[rowVal] || '';
-
+            
             const words = breakWord(value.toString(), additionalWrapCharacters);
             if (!rowData[rowVal]) {
                 rowData[rowVal] = words;
@@ -55,6 +55,8 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
             }
         }
     }
+    //console.log(rowData);
+
     
     //Headers
     const columnLength = columns.length;
@@ -80,17 +82,22 @@ export const getMinColumnWidth = (data, columns, cellFont, cellTextSize, headerF
     });
     
     //gets the minumum width for the column
-    //console.log(rowData)
-    Object.keys(rowData).forEach((row) => {
+    //console.log(Object.keys(columns))
+    columns.forEach(({columnId}, i) => {
+        // console.log('rowDataaaa', columnId);
+        //console.log('loop',i, headerData[row], headerData, row);
         //const columnHeader = columns.find((col) => col.columnId == row).header;
         
-        //console.log(headerData, row)
-        const longestHeaderItem = headerData[row][headerData[row].length -1];
-        const longestColumnItem = rowData[row][rowData[row].length -1];
+        //if(!rowData[row].length)console.log('this row', row);
         
-        rowData[row] = Math.max(getTextWidth(headerFont, headerTextSize, longestHeaderItem), getTextWidth(cellFont, cellTextSize, longestColumnItem))
+        const longestHeaderItem = headerData[columnId] ? headerData[columnId][headerData[columnId].length -1] : 0
+        const longestColumnItem = rowData[columnId][rowData[columnId].length -1];
+        
+        // console.log('rowData', getTextWidth(headerFont, headerTextSize, longestHeaderItem), getTextWidth(cellFont, cellTextSize, longestColumnItem));
+        
+        rowData[columnId] = Math.max(getTextWidth(headerFont, headerTextSize, longestHeaderItem), getTextWidth(cellFont, cellTextSize, longestColumnItem))
     })
-    
+    // console.log(rowData);
     return rowData
 };
 

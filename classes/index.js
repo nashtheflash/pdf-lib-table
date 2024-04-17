@@ -60,13 +60,17 @@ export class Data {
             if(rowItem.subheading) {
                 
                 const row = {...rowItem.subheading, tableRowType: 'subheading'};
-                
+                // console.log('row', row);
+
                 Object.keys(row).map((key) => {
-                    if(key === 'tableRowType') return;
-                    
-                    const parent = this.subheadingColumns.find(({ columnId }) => columnId == key).parentId;
+                    // const subheadingIDs = this.subheadingColumns.map
+                    if(key === 'tableRowType' ) return;
+
+                    // console.log(this.subheadingColumns.find(({ columnId }) => columnId == key));
+
+                    const parent = this.subheadingColumns.find(({ columnId }) => columnId == key)?.parentId;
                     //console.log(parent)
-                    row[parent] = row[key];
+                    parent ? row[parent] = row[key] : '';
                     delete row[key];
                 });
                 
@@ -85,7 +89,7 @@ export class Data {
 
     tableColumnWidths(startingX) {
         //this should be the min column width by column
-        const minColumnWidth = getMinColumnWidth(this.getData(), this.columns, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters);
+        const minColumnWidth = getMinColumnWidth(this.getData(), this.columns, this.columnIds, this.cellFont, this.cellTextSize, this.headerFont, this.headerTextSize, this.additionalWrapCharacters);
         const tableWidth = this.maxTableWidth && this.maxTableWidth < (this.pageWidth - startingX) ? this.maxTableWidth : (this.pageWidth - startingX);
         const finalSizing = spaceColumns(minColumnWidth, this.columns, tableWidth);
         return finalSizing;
@@ -324,6 +328,7 @@ export class Table {
         this.pageHeight = page.page.getHeight()
         this.data = data,
         this.columns = columns,
+        this.columnIds = columns.map(({ columnId }) => columnId),
         this.columnWidths = columnWidths,
         this.startingX = startingX,
         this.startingY = startingY,
@@ -404,6 +409,7 @@ export class Table {
                     newRow = new Row(
                         this.page, 
                         row.values,
+                        this.columnIds,
                         row.type,
                         this.startingX,
                         this.dividedXThickness,
@@ -616,6 +622,7 @@ export class Row {
     constructor(
         page,
         rowData,
+        columnIds,
         type,
         startingX,
         dividedXThickness,
@@ -631,7 +638,8 @@ export class Row {
         cellLineHeight
     ){  
         this.page = page,
-        this.rowData = rowData
+        this.rowData = rowData,
+        this.columnIds = columnIds,
         this._type = type,
         this.startingX = startingX,
         this.dividedXThickness = dividedXThickness,
@@ -655,8 +663,10 @@ export class Row {
 
     get cells() {
         const cells = [];
+
+        const rowsClean = this.rowData.filter(({colID}) => this.columnIds.includes(colID));
         
-        this.rowData.forEach(cell => cells.push(
+        rowsClean.forEach(cell => cells.push(
                 new Cell(
                     cell,
                     this._type,
@@ -676,6 +686,8 @@ export class Row {
     }
 
     drawRowBackground(index) {
+        // console.log('drawRowBackground', this.startingX)
+
         this.page.drawRectangle({
             x: this.startingX,
             y: this.startingY - this.height + this.cellLineHeight - 1.25,
@@ -688,6 +700,7 @@ export class Row {
     }
 
     drawDividerX() {
+        // console.log('drawDividerX', this.startingX, this.tableWidth)
         this.page.drawLine({
             start: { x: this.startingX, y: this.startingY - this.height + this.cellLineHeight - 1.25}, //- Math.max(headerHeight, headerFullTextHeight) },
             end: { x: this.startingX + this.tableWidth, y: this.startingY - this.height + this.cellLineHeight - 1.25}, // - Math.max(headerHeight, headerFullTextHeight) },
@@ -810,6 +823,8 @@ export class SubheaderRow {
     }
 
     drawRowBackground(index) {
+        // console.log('subheader', this.startingX)
+
         this.page.drawRectangle({
             x: this.startingX,
             y: this.startingY - this.height + this.subHeadingLineHeight - 1.25,
@@ -865,6 +880,7 @@ export class Cell {
     drawCellText(page) {
 
         const {values, startingX, startingY} = this.data;
+        // console.log('drawCellText', values, startingX, startingY)
 
         values.forEach((text, i) => {
             page.page.drawText(text, {
