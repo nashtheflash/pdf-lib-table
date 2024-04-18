@@ -383,7 +383,7 @@ export async function drawTable2(
 
     //process data
     const columnHeaderWidths = calcColumnHeaderWidths(columns, options);        //sets the initial width of the columns based on the size of the header
-    const columnDimensions = calcColumnWidths(tableData, options, columnHeaderWidths);
+    const columnDimensions = calcColumnWidths(tableData, columnHeaderWidths, options, document.pages[0]);
 
     //add pages
     //add tables

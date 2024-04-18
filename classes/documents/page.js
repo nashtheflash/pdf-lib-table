@@ -22,7 +22,7 @@ export class Page {
         return this._page
     }
     
-    get page() {
+    get dimensions() {
         return this._dimensions
     }
 }
