@@ -20,6 +20,7 @@ const blue = rgb(.21, .24, .85);
 const grey = rgb(.03, .03, .03);
 
 import {Document} from './classes/documents/document'
+import { VerticalTable } from './classes/tables/vertical-table';
 
 export async function drawTable({
     data, // Required - No Default - data t be printed
@@ -382,14 +383,33 @@ export async function drawTable2(
     // build the document
     const document = new Document(page, pdfDoc, fonts, colors);
 
+    //Add pages and print tables
+    let remainingData = data;
+
+    // for (let loop = 0; remainingData.length > 0; loop++) {
+    for (let loop = 0; loop < 1; loop++) {
+        // const t0 = performance.now();
+        console.log(remainingData)
+        
+        if(loop !== 0) document.addPage([792.0, 612.0]); 
+
+        const columnHeaderWidths = calcColumnHeaderWidths(columns, options);        //sets the initial width of the columns based on the size of the header
+        const [columnDimensions, verticalDimensions, tableData, additionalData] = calcColumnWidths(data, columnHeaderWidths, options, document.pages[0]);
+        
+        const table = new VerticalTable(remainingData, columns);
+        document.addTable(table);
+        
+        remainingData = additionalData;
+        // const t1 = performance.now();
+        // console.log(`It took ${t1 - t0} milliseconds to generate page.`);
+    }
+
     //process data
-    const columnHeaderWidths = calcColumnHeaderWidths(columns, options);        //sets the initial width of the columns based on the size of the header
-    const [columnDimensions, verticalDimensions, tableData, remainingData] = calcColumnWidths(data, columnHeaderWidths, options, document.pages[0]);
 
     // console.log(columnDimensions);
     // console.log(verticalDimensions);
     // console.log(tableData);
-    console.log(remainingData);
+    // console.log(remainingData);
 
     //add pages
     //add tables

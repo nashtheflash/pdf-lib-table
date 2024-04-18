@@ -71,20 +71,23 @@ export function columnWidthWrap(columns, options) {
 }
 
 export function calcColumnWidths(data, columnHeaderWidths, options, page) {
-
+    
     const { startingY } = options;
     const maxTableHeight = page.dimensions[1] - (page.dimensions[1] - startingY)//TODO: this needs to come from the table...
+    const  dataLength = data.length;
     
     //add row
     let columnDimensions = columnHeaderWidths;
     let verticalDimensions;
     let tableData = [];
     
-    for (let loop = 0; loop < data.length; loop++){
+    for (let loop = 0; loop < dataLength; loop++){
         tableData.push(data[loop])
-
-        const [finalColumnDimensions, finalverticalDimensions, dt] = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, maxTableHeight, options });
-
+        
+        const t0 = performance.now();
+        const [finalColumnDimensions, finalverticalDimensions, dt] = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, maxTableHeight, options }); //TODO: this needs to just run the calc on one row. then check to see if the data needs to be updated
+        const t1 = performance.now();
+        
         if(finalverticalDimensions.currentTableHeight > maxTableHeight) {
             tableData.pop();
             const [previousColumnDimensions, previousverticalDimensions, dt] = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, maxTableHeight, options }); //TODO: could probably stor this so I dont have to run it again;
@@ -96,12 +99,15 @@ export function calcColumnWidths(data, columnHeaderWidths, options, page) {
             columnDimensions = finalColumnDimensions;
             verticalDimensions = finalverticalDimensions;
         }
-
+        
+        console.log(`Call to doSomething took ${t1 - t0} milliseconds.`);
     }
 
     const remainingData = data.slice(tableData.length);
+    
 
-    return [columnDimensions, verticalDimensions, tableData, remainingData]
+
+    return [columnDimensions, verticalDimensions, tableData, remainingData];
 };
 
 

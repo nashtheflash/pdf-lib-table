@@ -19,17 +19,17 @@ export class Document {
     get pages() {
         return this._pages;
     }
-    
-    get document() {
+
+    addPage(dimensions) {
+        const page = this._pdfDoc.addPage(dimensions);
+        this._pages.push(new Page(page));
+
         return this._pages;
     }
-
-    addPage(page) {
-        const pg = new Page(page)
-        
-        this.pages.push(pg);
-        
-        return pg;
+    
+    addTable(table) {
+        this._tables.push(table);
+        return this._tables;
     }
 
     drawVerticalTables() {

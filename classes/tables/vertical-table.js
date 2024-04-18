@@ -1,21 +1,21 @@
 export class VerticalTable {
     constructor(
         //REQUIRED
-        page,
+        // page,
         data,
         columns,
         //TABLE
         {
             startingX = 0,
-            startingY = page.getHeight(),
+            // startingY = page.getHeight(),
             dividedX = true,
             dividedY = true,
             dividedXColor = undefined,
             dividedYColor = undefined,
             dividedXThickness = 1,
             dividedYThickness = 1,
-            maxTableWidth = page.getWidth() - startingX,
-            maxTableHeight = page.getHeight() - startingY,
+            // maxTableWidth = page.getWidth() - startingX,
+            // maxTableHeight = page.getHeight() - startingY,
             rowHeightSizing = 'auto',
             tableBoarder = true,
             tableBoarderThickness = 1,
@@ -23,20 +23,20 @@ export class VerticalTable {
         } = {}
     ){
         //REQUIRED
-        this._page = page,
+        // this._page = page,
         this._data = data,
         this._columns = columns,
         //TABLE
         this._startingX = startingX,
-        this._startingY = startingY,
+        // this._startingY = startingY,
         this._dividedX = dividedX,
         this._dividedY = dividedY,
         this._dividedXColor = dividedXColor,
         this._dividedYColor = dividedYColor,
         this._dividedXThickness = dividedXThickness,
         this._dividedYThickness = dividedYThickness,
-        this._maxTableWidth = maxTableWidth,
-        this._maxTableHeight = maxTableHeight,
+        // this._maxTableWidth = maxTableWidth,
+        // this._maxTableHeight = maxTableHeight,
         this._rowHeightSizing = rowHeightSizing,
         this._tableBoarder = tableBoarder,
         this._tableBoarderThickness = tableBoarderThickness,
