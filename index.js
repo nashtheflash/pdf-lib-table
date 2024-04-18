@@ -292,7 +292,7 @@ export async function drawTable({
 
 
 export async function drawTable2(
-    tableData, // Required - No Default - data t be printed
+    data, // Required - No Default - data t be printed
     page, // Required - No Default - page provided by pdf-lib
     pdfDoc, // Required - No Default - pdfDoc that the table will be printed on
     columns, // Required - No Default - column definitions
@@ -343,6 +343,7 @@ export async function drawTable2(
         subHeadingDividedY,
         subHeadingDividedYThickness,
         subHeadingDividedYColor,
+        subheadingWrapText,
         //HEADER SETTINGS
         headerFont, // Required -  No Default - any pdflib standard font
         headerDividedX,
@@ -383,7 +384,12 @@ export async function drawTable2(
 
     //process data
     const columnHeaderWidths = calcColumnHeaderWidths(columns, options);        //sets the initial width of the columns based on the size of the header
-    const columnDimensions = calcColumnWidths(tableData, columnHeaderWidths, options, document.pages[0]);
+    const [columnDimensions, verticalDimensions, tableData, remainingData] = calcColumnWidths(data, columnHeaderWidths, options, document.pages[0]);
+
+    // console.log(columnDimensions);
+    // console.log(verticalDimensions);
+    // console.log(tableData);
+    console.log(remainingData);
 
     //add pages
     //add tables
