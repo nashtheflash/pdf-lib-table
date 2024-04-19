@@ -21,6 +21,8 @@ const grey = rgb(.03, .03, .03);
 
 import {Document} from './classes/documents/document'
 import { VerticalTable } from './classes/tables/vertical-table';
+import { Row } from './classes/rows/row';
+import { SubHeading } from './classes/rows/subheading';
 
 export async function drawTable({
     data, // Required - No Default - data t be printed
@@ -388,34 +390,30 @@ export async function drawTable2(
 
     // for (let loop = 0; remainingData.length > 0; loop++) {
     for (let loop = 0; loop < 1; loop++) {
-        // console.log(remainingData)
-        
-        if(loop !== 0) document.addPage([792.0, 612.0]); 
-        
         const columnHeaderWidths = calcColumnHeaderWidths(columns, options);        //sets the initial width of the columns based on the size of the header
-        const t0 = performance.now();
-        const [columnDimensions, verticalDimensions, tableData, additionalData] = calcColumnWidths(data, columnHeaderWidths, options, document.pages[0]);
-        const t1 = performance.now();
+        // const [columnDimensions, verticalDimensions, tableData, additionalData] = calcColumnWidths(data, columnHeaderWidths, options, document.pages[0]);
+        const [finalColumnDimensions, tableHeight, wrappedTableData, rData] = calcColumnWidths(data, columnHeaderWidths, options, document.pages[0]);
+
+        console.log('finalData', wrappedTableData)
         
+        //create the table TODO: add more table types
         const table = new VerticalTable(remainingData, columns);
+        // console.log(tableData)
+        
+        //add rows to the table
+        remainingData.forEach((row) => {
+            if(row.type === 'row') table.addRow(new Row(row, columns));
+            // if(row.type === 'subheading') table.addRow(new SubHeading(row, columns));
+        });
+
+        //add page to the doc if needed
+        if(loop !== 0) document.addPage([792.0, 612.0]); 
+
+        //add table to the document
         document.addTable(table);
         
         remainingData = additionalData;
-        console.log(`It took ${t1 - t0} milliseconds to generate page.`);
-    }
-
-    //process data
-
-    // console.log(columnDimensions);
-    // console.log(verticalDimensions);
-    // console.log(tableData);
-    // console.log(remainingData);
-
-    //add pages
-    //add tables
-
-
-
+    };
 
     return document;
 };

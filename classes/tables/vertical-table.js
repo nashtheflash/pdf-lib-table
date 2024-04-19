@@ -44,8 +44,8 @@ export class VerticalTable {
         this._rows = []
     }
 
-    addRows(row) {
-        this._rowHeightSizing.push(row)
+    addRow(row) {
+        this._rows.push(row)
     }
 
     get tableWidth() {

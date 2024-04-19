@@ -74,49 +74,62 @@ export function calcColumnWidths(data, columnHeaderWidths, options, page) {
     
     const { startingY } = options;
     const maxTableHeight = page.dimensions[1] - (page.dimensions[1] - startingY)//TODO: this needs to come from the table...
-    const  dataLength = data.length;
     
     //most of these are optomizations
     let columnDimensions = columnHeaderWidths;
-    let currentColumnDimensionsCalc;
-    let verticalDimensions;
     let tableData = [];
-    let prevColumnDimensions;
+    let currentInternalTableDimensions;
 
-    const t0 = performance.now();
+    const  dataLength = data.length;
     for (let loop = 0; loop < dataLength; loop++){
         tableData.push(data[loop])
         
-        const [finalColumnDimensions, finalverticalDimensions, dt] = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, currentColumnDimensionsCalc, maxTableHeight, verticalDimensions, options }); //TODO: this needs to just run the calc on one row. then check to see if the data needs to be updated
-        //Below are optomizations.
-        prevColumnDimensions = [finalColumnDimensions, finalverticalDimensions, dt]; //stash the data incase the table overflows the page
-        currentColumnDimensionsCalc = finalColumnDimensions //stash the data to avoid running calcs if the dementions are unchanged
-        verticalDimensions = finalverticalDimensions;
+        const finalColumnDimensions = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, currentInternalTableDimensions, maxTableHeight, options }); //TODO: this needs to just run the calc on one row. then check to see if the data needs to be updated
         
-        if(finalverticalDimensions.currentTableHeight > maxTableHeight) {
+        const prevWrapedData = currentInternalTableDimensions ? currentInternalTableDimensions[0] : {}
+        const [tableHeight, wrappedTableData] = getTableHeight({ rowData: data[loop], tableData, columnDimensions, finalColumnDimensions, prevWrapedData, options })
+
+        if(tableHeight > maxTableHeight) {
             tableData.pop();
-            columnDimensions = previousColumnDimensions[0];
-            verticalDimensions = previousverticalDimensions[1];
+            return;
         }
         
-        if(finalverticalDimensions.currentTableHeight < maxTableHeight && loop == data.length - 1) {
-            columnDimensions = finalColumnDimensions;
-            verticalDimensions = finalverticalDimensions;
+        if(tableHeight < maxTableHeight && loop == data.length - 1) {
+            currentInternalTableDimensions = [finalColumnDimensions, tableData, wrappedTableData]
+            columnDimensions = finalColumnDimensions
         }
-        
-    }
-    const t1 = performance.now();
-    // console.log(`calcColumnWidths took ${t1 - t0} milliseconds.`);
+    };
 
     const remainingData = data.slice(tableData.length);
-    
 
+    const [finalColumnDimensions, tableHeight, wrappedTableData] = currentInternalTableDimensions;
+    return [finalColumnDimensions, tableHeight, wrappedTableData, remainingData];
+};
 
-    return [columnDimensions, verticalDimensions, tableData, remainingData];
+export function getTableHeight({ rowData, tableData, columnDimensions, finalColumnDimensions, prevWrapedData, options }) {
+    //if the data is unchanged. dont run calcRowHeights
+    let wrappedTableData;
+    let tableHeight;
+
+    if(JSON.stringify(finalColumnDimensions) === JSON.stringify(columnDimensions)){
+        //only calc new row
+        const [wrappedTbleData, tblHeight] = calcRowHeights(rowData, finalColumnDimensions, options);
+        
+        wrappedTableData = {...prevWrapedData, ...wrappedTbleData};
+        tableHeight = tblHeight;
+    } else {
+        //calc entire table
+        const [wrappedTbleData, tblHeight] = calcRowHeights(tableData, finalColumnDimensions, options);
+
+        wrappedTableData = wrappedTbleData;
+        tableHeight = tblHeight;
+    }
+
+    return [tableHeight, wrappedTableData]
 };
 
 
-export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, currentColumnDimensionsCalc, verticalDimensions, options }){
+export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, currentInternalTableDimensions, options }){
     const { cellFont, cellTextSize, maxTableWidth, startingY, subheadingWrapText, subheadingColumns } = options;
     let adjustedColumnDimensions = columnDimensions
     
@@ -136,21 +149,11 @@ export function adjustColumnWidth({ rowData, rowType, tableData, columnDimension
         adjustedColumnDimensions[parentColumnId].intrinsicPercentageWidth = updateIntrinsicPercentageWidth(adjustedColumnDimensions[parentColumnId].maxColumnWidth, maxTableWidth);
     });
     
-    //if(adjustedColumnDimensions == columnDimensions) return [columnDimensions, verticalDimensions, tableData]
-    
     //Find the actual column widths
     const finalColumnDimensions = distributeExcessTableWidth(tableData, adjustedColumnDimensions, options);
     
-    // console.log(finalColumnDimensions, currentColumnDimensionsCalc);
-    // console.log(JSON.stringify(finalColumnDimensions) === JSON.stringify(currentColumnDimensionsCalc))
-    if(JSON.stringify(finalColumnDimensions) === JSON.stringify(currentColumnDimensionsCalc)) return [finalColumnDimensions, verticalDimensions, tableData]
-    //Assign Row Heights
-    const t0 = performance.now();
-    const finalVerticalDimensions = calcRowHeights(tableData, finalColumnDimensions, options);
-    const t1 = performance.now();
 
-    console.log(`Call to doSomething took ${t1 - t0} milliseconds.`);
-    return [finalColumnDimensions, finalVerticalDimensions, tableData] //adjust this...
+    return finalColumnDimensions //adjust this...
 };
 
 export function distributeExcessTableWidth(data, columnDimensions, options){
@@ -159,13 +162,11 @@ export function distributeExcessTableWidth(data, columnDimensions, options){
 
     //All columns can take as much space as they need. No wraping is required
     if(columnTotals.intrinsicPercentageWidth <= 100) {
-        // console.log('assignFullColumnWidths', columnTotals.intrinsicPercentageWidth)
         return assignFullColumnWidths(columnDimensions, maxTableWidth, columnTotals);
     }
     
     //Some column warpping will occore
     if(columnTotals.intrinsicPercentageWidth > 100 && columnTotals.columnMinWidth < maxTableWidth) {
-        // console.log('assignIntrinsicBasedColumnWidths', columnTotals.intrinsicPercentageWidth)
         //the column min widths fit in the table
         return assignIntrinsicBasedColumnWidths(columnDimensions, maxTableWidth, columnTotals);
     }
@@ -222,61 +223,69 @@ export function sumColumnProperties(columnDimensions) {
 }
 
 export function calcRowHeights(data, columnDimensions, options){
-    let tableData = data;
+    let tableData = [...data];
     let currentTableHeight = 0;
     
-    const t0 = performance.now();
     tableData.forEach((row, i) => {
-        console.log(row, i)
-        const rowHeight = getRowHeight(tableData, columnDimensions, options);
+        const [rowHeight, wrappedData] = getRowHeightAndWrapText(row, columnDimensions, options);
         
-        tableData[i] = {...tableData[i], rowHeight};
+        tableData[i] = {...tableData[i], rowHeight, data: wrappedData};
         currentTableHeight += rowHeight
     });
     
-    const t1 = performance.now();
-    // console.log(`Call to doSomething took ${t1 - t0} milliseconds.`); //TODO: this is the preformace issue
 
-    return {tableData, currentTableHeight};
+    return [tableData, currentTableHeight];
 };
 
-export function getRowHeight(tableData, columnWidths, options) {
+export function getRowHeightAndWrapText(row, columnWidths, options) {
     const { cellFont, cellTextSize, cellLineHeight, subheadingWrapText, subHeadingFont, subHeadingLineHeight, subHeadingTextSize, subheadingColumns, additionalWrapCharacters } = options;
 
-    const rowdata = tableData.map(row => {
-        let tallestCell;
+    let tallestCell = 0;
+    let wrappedData = {...row.data};
+    const rowdata = Object.keys(row.data).map(cell => {
+        // console.log(cell)
         
         if(row.type === 'row') {
             //console.log('ROW')
-            tallestCell = Object.keys(row.data).reduce((longest, col) => {
-                const wrappedText = getWrapedText(cellFont, cellTextSize, columnWidths[col].actualWidth, row.data[col], additionalWrapCharacters);
-                return wrappedText.length > longest.length ? wrappedText : longest;
-            }, []);
+            // tallestCell = Object.keys(row.data).reduce((longest, col) => {
+            //     const wrappedText = getWrapedText(cellFont, cellTextSize, columnWidths[col].actualWidth, row.data[col], additionalWrapCharacters);
+            //     return wrappedText.length > longest.length ? wrappedText : longest;
+            // }, []);
+            // console.log(row)
+            const wrappedText = getWrapedText(cellFont, cellTextSize, columnWidths[cell].actualWidth, row.data[cell], additionalWrapCharacters);
+            // console.log(row.data[cell], wrappedText)
+            //console.log(row, columnWidths[cell].actualWidth, row.data[cell])
+            wrappedData = { ...wrappedData, [cell]: wrappedText}
+            // console.log(wrappedData)
+            if(wrappedText.length > tallestCell) tallestCell = wrappedText.length;
         }
 
-        if(row.type === 'subheading' && subheadingWrapText) {
-            const subheadingDef = subheadingColumns.find(({parentId}) => parentId === col);
+    //     if(row.type === 'subheading' && subheadingWrapText) {
+    //         const subheadingDef = subheadingColumns.find(({parentId}) => parentId === col);
                 
-            const parentColumnId = subheadingDef.parentId;
-            const sunHeadingColumnId = subheadingDef.columnId;
+    //         const parentColumnId = subheadingDef.parentId;
+    //         const sunHeadingColumnId = subheadingDef.columnId;
 
-            tallestCell = Object.keys(row.data).reduce((longest, col) => {
-                const wrappedText = getWrapedText(subHeadingFont, subHeadingTextSize, columnWidths[parentColumnId].actualWidth, row.data[sunHeadingColumnId], additionalWrapCharacters);
-                return wrappedText.length > longest.length ? wrappedText : longest;
-            }, []);
-        }
+    //         tallestCell = Object.keys(row.data).reduce((longest, col) => {
+    //             const wrappedText = getWrapedText(subHeadingFont, subHeadingTextSize, columnWidths[parentColumnId].actualWidth, row.data[sunHeadingColumnId], additionalWrapCharacters);
+    //             return wrappedText.length > longest.length ? wrappedText : longest;
+    //         }, []);
+    //     }
         
-        if(row.type === 'subheading' && !subheadingWrapText) {
-            tallestCell = ['subheading']; // if there is no wrapping the array length will only ever be 1
-        }
+    //     if(row.type === 'subheading' && !subheadingWrapText) {
+    //         tallestCell = ['subheading']; // if there is no wrapping the array length will only ever be 1
+    //     }
 
-        const rowHeight = row.type === 'row' ? tallestCell.length * cellLineHeight : tallestCell.length * subHeadingLineHeight
+    //     const rowHeight = row.type === 'row' ? tallestCell.length * cellLineHeight : tallestCell.length * subHeadingLineHeight
 
 
-        return rowHeight;
+    //     return rowHeight;
     });
     
-    return Math.max(...rowdata);
+    const rowHeight = row.type === 'row' ? tallestCell * cellLineHeight : tallestCell * subHeadingLineHeight
+    // console.log(wrappedData, rowHeight)
+
+    return [rowHeight, wrappedData]; //TODO: THIS IS THE FINAL DATA THAT I NEED!!!!!!!!
 };
 
 export function updateIntrinsicPercentageWidth(maxColumnLength, tableWidth) {
@@ -284,7 +293,7 @@ export function updateIntrinsicPercentageWidth(maxColumnLength, tableWidth) {
 };
 
 export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrapCharacters) => {
-    const words = brakeStringIntoWords(text.toString(), additionalWrapCharacters);
+    const words = brakeStringIntoWords(text, additionalWrapCharacters);
     const wordsLength = words.length;
 
     let currentLine = '';
@@ -293,36 +302,22 @@ export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrap
 
     for (let loop = 0; loop < wordsLength; loop++) {
         const currentWordLength = getTextWidth(font, fontSize, words[loop]+' ') + 1.3;
-        // const currentWord = getTextWidth(font, fontSize, words[loop]);
 
-        //currentLine == '' ? currentLine = words[loop] : currentLine = currentLine.concat(' ', words[loop]);
-
-        //there are no more words to search. This is the last line of test and it is not overflowing
-        if(currentLine != '' && loop == wordsLength - 1) {
-            lines.push(currentLine);
-            return;
-        }
-
-        //current word makes the line overflow
-        if (currentWordLength + currentWordLength > textAreaSize && words.length !== 0) {
-            // const wordArray = currentLine.split(' ');
-            // const overFlowedWord = wordArray.pop();
+        if (currentWordLength + currentLineLength > textAreaSize) {
+            //current word makes the line overflow
             lines.push(currentLine);
             currentLine = words[loop];
             currentLineLength = currentWordLength;
-            //return;
-        };
-        
-        //current word does not make the line overflow. add the word to the current line and continue
-        if (currentWordLength + currentWordLength < textAreaSize && words.length !== 0) {
-            currentLine.concat(' ', words[loop])
+        } else if(loop == wordsLength - 1) {
+            //last word in the string
+            currentLine = currentLine ? currentLine + ' ' + words[loop] : words[loop];
+            lines.push(currentLine);
+        } else if (currentWordLength + currentLineLength < textAreaSize) {
+            //current word does not make the line overflow. add the word to the current line and continue
+            currentLine = currentLine ? currentLine + ' ' + words[loop] : words[loop];
             currentLineLength += currentWordLength;
-           //return;
-        };
-
-        
+        }
     }
-    
     return lines;
 };
 
@@ -330,6 +325,7 @@ export const getTextWidth = (font, size, text) => font.widthOfTextAtSize(text, s
 
 //this function takes a string and and charicters the string neeeds to be brioken by and returns a array of words
 export const brakeStringIntoWords = (word, char) => {
+    // console.log(word)
     let words = word.split(' ');
 
     if(char && char.length !== 0) {
@@ -337,7 +333,7 @@ export const brakeStringIntoWords = (word, char) => {
         words = words.map((word) => word.split(sym))
         })
     };
-
+    console.log(words)
     return [...words.flat(Infinity)];
 };
 

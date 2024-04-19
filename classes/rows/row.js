@@ -1,6 +1,6 @@
 export class Row {
     constructor(
-        page,
+        //page,
         rowData,
         columnIds,
         {
@@ -13,7 +13,7 @@ export class Row {
             alternateRowColorValue = undefined,
         } = {}
     ){  
-        this._page = page,
+        //this._page = page,
         this._rowData = rowData,
         this._columnIds = columnIds,
         this._startingX = startingX,
