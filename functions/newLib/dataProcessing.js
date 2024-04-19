@@ -76,23 +76,27 @@ export function calcColumnWidths(data, columnHeaderWidths, options, page) {
     const maxTableHeight = page.dimensions[1] - (page.dimensions[1] - startingY)//TODO: this needs to come from the table...
     const  dataLength = data.length;
     
-    //add row
+    //most of these are optomizations
     let columnDimensions = columnHeaderWidths;
+    let currentColumnDimensionsCalc;
     let verticalDimensions;
     let tableData = [];
-    
+    let prevColumnDimensions;
+
+    const t0 = performance.now();
     for (let loop = 0; loop < dataLength; loop++){
         tableData.push(data[loop])
         
-        const t0 = performance.now();
-        const [finalColumnDimensions, finalverticalDimensions, dt] = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, maxTableHeight, options }); //TODO: this needs to just run the calc on one row. then check to see if the data needs to be updated
-        const t1 = performance.now();
+        const [finalColumnDimensions, finalverticalDimensions, dt] = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, currentColumnDimensionsCalc, maxTableHeight, verticalDimensions, options }); //TODO: this needs to just run the calc on one row. then check to see if the data needs to be updated
+        //Below are optomizations.
+        prevColumnDimensions = [finalColumnDimensions, finalverticalDimensions, dt]; //stash the data incase the table overflows the page
+        currentColumnDimensionsCalc = finalColumnDimensions //stash the data to avoid running calcs if the dementions are unchanged
+        verticalDimensions = finalverticalDimensions;
         
         if(finalverticalDimensions.currentTableHeight > maxTableHeight) {
             tableData.pop();
-            const [previousColumnDimensions, previousverticalDimensions, dt] = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, maxTableHeight, options }); //TODO: could probably stor this so I dont have to run it again;
-            columnDimensions = previousColumnDimensions;
-            verticalDimensions = previousverticalDimensions;
+            columnDimensions = previousColumnDimensions[0];
+            verticalDimensions = previousverticalDimensions[1];
         }
         
         if(finalverticalDimensions.currentTableHeight < maxTableHeight && loop == data.length - 1) {
@@ -100,8 +104,9 @@ export function calcColumnWidths(data, columnHeaderWidths, options, page) {
             verticalDimensions = finalverticalDimensions;
         }
         
-        console.log(`Call to doSomething took ${t1 - t0} milliseconds.`);
     }
+    const t1 = performance.now();
+    // console.log(`calcColumnWidths took ${t1 - t0} milliseconds.`);
 
     const remainingData = data.slice(tableData.length);
     
@@ -111,7 +116,7 @@ export function calcColumnWidths(data, columnHeaderWidths, options, page) {
 };
 
 
-export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, options }){
+export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, currentColumnDimensionsCalc, verticalDimensions, options }){
     const { cellFont, cellTextSize, maxTableWidth, startingY, subheadingWrapText, subheadingColumns } = options;
     let adjustedColumnDimensions = columnDimensions
     
@@ -121,23 +126,31 @@ export function adjustColumnWidth({ rowData, rowType, tableData, columnDimension
         const subheadingDef = rowType === 'subheading' ? subheadingColumns.find(({parentId}) => parentId === col) : undefined;
         const parentColumnId = rowType === 'subheading' ? subheadingDef.parentId : col;
         const sunHeadingColumnId = rowType === 'subheading' ? subheadingDef.columnId : col;
-
+        
         const cellStringLength = getTextWidth(cellFont, cellTextSize, rowData.data[sunHeadingColumnId]);
         const longestCellWord = getLongestWordFromString(rowData.data[sunHeadingColumnId], options);
         const cellMinWidth = getTextWidth(cellFont, cellTextSize, longestCellWord);
-
+        
         if(adjustedColumnDimensions[parentColumnId].columnMinWidth < cellMinWidth) adjustedColumnDimensions[parentColumnId].columnMinWidth = cellMinWidth;
         if(adjustedColumnDimensions[parentColumnId].maxColumnWidth < cellStringLength) adjustedColumnDimensions[parentColumnId].maxColumnWidth = cellStringLength;
         adjustedColumnDimensions[parentColumnId].intrinsicPercentageWidth = updateIntrinsicPercentageWidth(adjustedColumnDimensions[parentColumnId].maxColumnWidth, maxTableWidth);
     });
-
+    
+    //if(adjustedColumnDimensions == columnDimensions) return [columnDimensions, verticalDimensions, tableData]
+    
     //Find the actual column widths
     const finalColumnDimensions = distributeExcessTableWidth(tableData, adjustedColumnDimensions, options);
-
+    
+    // console.log(finalColumnDimensions, currentColumnDimensionsCalc);
+    // console.log(JSON.stringify(finalColumnDimensions) === JSON.stringify(currentColumnDimensionsCalc))
+    if(JSON.stringify(finalColumnDimensions) === JSON.stringify(currentColumnDimensionsCalc)) return [finalColumnDimensions, verticalDimensions, tableData]
     //Assign Row Heights
-    const verticalDimensions = calcRowHeights(tableData, finalColumnDimensions, options);
+    const t0 = performance.now();
+    const finalVerticalDimensions = calcRowHeights(tableData, finalColumnDimensions, options);
+    const t1 = performance.now();
 
-    return [finalColumnDimensions, verticalDimensions, tableData] //adjust this...
+    console.log(`Call to doSomething took ${t1 - t0} milliseconds.`);
+    return [finalColumnDimensions, finalVerticalDimensions, tableData] //adjust this...
 };
 
 export function distributeExcessTableWidth(data, columnDimensions, options){
@@ -211,13 +224,18 @@ export function sumColumnProperties(columnDimensions) {
 export function calcRowHeights(data, columnDimensions, options){
     let tableData = data;
     let currentTableHeight = 0;
-
+    
+    const t0 = performance.now();
     tableData.forEach((row, i) => {
+        console.log(row, i)
         const rowHeight = getRowHeight(tableData, columnDimensions, options);
         
         tableData[i] = {...tableData[i], rowHeight};
         currentTableHeight += rowHeight
     });
+    
+    const t1 = performance.now();
+    // console.log(`Call to doSomething took ${t1 - t0} milliseconds.`); //TODO: this is the preformace issue
 
     return {tableData, currentTableHeight};
 };
@@ -229,6 +247,7 @@ export function getRowHeight(tableData, columnWidths, options) {
         let tallestCell;
         
         if(row.type === 'row') {
+            //console.log('ROW')
             tallestCell = Object.keys(row.data).reduce((longest, col) => {
                 const wrappedText = getWrapedText(cellFont, cellTextSize, columnWidths[col].actualWidth, row.data[col], additionalWrapCharacters);
                 return wrappedText.length > longest.length ? wrappedText : longest;
@@ -268,22 +287,40 @@ export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrap
     const words = brakeStringIntoWords(text.toString(), additionalWrapCharacters);
     const wordsLength = words.length;
 
-    let currentWord = '';
+    let currentLine = '';
+    let currentLineLength = 0;
     let lines = [];
 
     for (let loop = 0; loop < wordsLength; loop++) {
-        currentWord == '' ? currentWord = words[loop] : currentWord = currentWord.concat(' ', words[loop]);
-        // const lineLength = getTextWidth(font, fontSize, currentWord+' ') + 1.3;
-        const lineLength = getTextWidth(font, fontSize, currentWord);
+        const currentWordLength = getTextWidth(font, fontSize, words[loop]+' ') + 1.3;
+        // const currentWord = getTextWidth(font, fontSize, words[loop]);
 
-        if (lineLength > textAreaSize && words.length !== 0) {
-            const wordArray = currentWord.split(' ');
-            const overFlowedWord = wordArray.pop();
-            lines.push(wordArray.join(' '));
-            currentWord = overFlowedWord;
+        //currentLine == '' ? currentLine = words[loop] : currentLine = currentLine.concat(' ', words[loop]);
+
+        //there are no more words to search. This is the last line of test and it is not overflowing
+        if(currentLine != '' && loop == wordsLength - 1) {
+            lines.push(currentLine);
+            return;
+        }
+
+        //current word makes the line overflow
+        if (currentWordLength + currentWordLength > textAreaSize && words.length !== 0) {
+            // const wordArray = currentLine.split(' ');
+            // const overFlowedWord = wordArray.pop();
+            lines.push(currentLine);
+            currentLine = words[loop];
+            currentLineLength = currentWordLength;
+            //return;
+        };
+        
+        //current word does not make the line overflow. add the word to the current line and continue
+        if (currentWordLength + currentWordLength < textAreaSize && words.length !== 0) {
+            currentLine.concat(' ', words[loop])
+            currentLineLength += currentWordLength;
+           //return;
         };
 
-        if(currentWord != '' && loop == wordsLength - 1) lines.push(currentWord);
+        
     }
     
     return lines;

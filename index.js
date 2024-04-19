@@ -388,20 +388,20 @@ export async function drawTable2(
 
     // for (let loop = 0; remainingData.length > 0; loop++) {
     for (let loop = 0; loop < 1; loop++) {
-        // const t0 = performance.now();
-        console.log(remainingData)
+        // console.log(remainingData)
         
         if(loop !== 0) document.addPage([792.0, 612.0]); 
-
+        
         const columnHeaderWidths = calcColumnHeaderWidths(columns, options);        //sets the initial width of the columns based on the size of the header
+        const t0 = performance.now();
         const [columnDimensions, verticalDimensions, tableData, additionalData] = calcColumnWidths(data, columnHeaderWidths, options, document.pages[0]);
+        const t1 = performance.now();
         
         const table = new VerticalTable(remainingData, columns);
         document.addTable(table);
         
         remainingData = additionalData;
-        // const t1 = performance.now();
-        // console.log(`It took ${t1 - t0} milliseconds to generate page.`);
+        console.log(`It took ${t1 - t0} milliseconds to generate page.`);
     }
 
     //process data
