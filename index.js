@@ -386,7 +386,7 @@ export async function drawTable2(
     const document = new Document(page, pdfDoc, fonts, colors);
 
     //Add pages and print tables
-    let remainingData = data;
+    let remainingData = [...data];
 
     // for (let loop = 0; remainingData.length > 0; loop++) {
     for (let loop = 0; loop < 1; loop++) {
@@ -402,7 +402,7 @@ export async function drawTable2(
         
         //add rows to the table
         remainingData.forEach((row) => {
-            if(row.type === 'row') table.addRow(new Row(row, columns));
+            // if(row.type === 'row') table.addRow(new Row(row, columns));
             // if(row.type === 'subheading') table.addRow(new SubHeading(row, columns));
         });
 
@@ -412,7 +412,7 @@ export async function drawTable2(
         //add table to the document
         document.addTable(table);
         
-        remainingData = additionalData;
+        remainingData = rData;
     };
 
     return document;

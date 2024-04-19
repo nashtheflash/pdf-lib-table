@@ -242,48 +242,30 @@ export function getRowHeightAndWrapText(row, columnWidths, options) {
 
     let tallestCell = 0;
     let wrappedData = {...row.data};
-    const rowdata = Object.keys(row.data).map(cell => {
-        // console.log(cell)
+    Object.keys(row.data).forEach(cell => {
         
         if(row.type === 'row') {
-            //console.log('ROW')
-            // tallestCell = Object.keys(row.data).reduce((longest, col) => {
-            //     const wrappedText = getWrapedText(cellFont, cellTextSize, columnWidths[col].actualWidth, row.data[col], additionalWrapCharacters);
-            //     return wrappedText.length > longest.length ? wrappedText : longest;
-            // }, []);
-            // console.log(row)
             const wrappedText = getWrapedText(cellFont, cellTextSize, columnWidths[cell].actualWidth, row.data[cell], additionalWrapCharacters);
-            // console.log(row.data[cell], wrappedText)
-            //console.log(row, columnWidths[cell].actualWidth, row.data[cell])
             wrappedData = { ...wrappedData, [cell]: wrappedText}
-            // console.log(wrappedData)
             if(wrappedText.length > tallestCell) tallestCell = wrappedText.length;
-        }
+        };
 
-    //     if(row.type === 'subheading' && subheadingWrapText) {
-    //         const subheadingDef = subheadingColumns.find(({parentId}) => parentId === col);
-                
-    //         const parentColumnId = subheadingDef.parentId;
-    //         const sunHeadingColumnId = subheadingDef.columnId;
+        // if(row.type === 'subheading' && subheadingWrapText) {
+        //     const subheadingDef = subheadingColumns.find(({parentId}) => parentId === col);
+        //     const parentColumnId = subheadingDef.parentId;
+        //     const sunHeadingColumnId = subheadingDef.columnId;
 
-    //         tallestCell = Object.keys(row.data).reduce((longest, col) => {
-    //             const wrappedText = getWrapedText(subHeadingFont, subHeadingTextSize, columnWidths[parentColumnId].actualWidth, row.data[sunHeadingColumnId], additionalWrapCharacters);
-    //             return wrappedText.length > longest.length ? wrappedText : longest;
-    //         }, []);
-    //     }
+        //     const wrappedText = getWrapedText(subHeadingFont, subHeadingTextSize, columnWidths[parentColumnId].actualWidth, row.data[sunHeadingColumnId], additionalWrapCharacters);
+        //     wrappedData = { ...wrappedData, [cell]: wrappedText}
+        //     if(wrappedText.length > tallestCell) tallestCell = wrappedText.length;
+        // };
         
-    //     if(row.type === 'subheading' && !subheadingWrapText) {
-    //         tallestCell = ['subheading']; // if there is no wrapping the array length will only ever be 1
-    //     }
-
-    //     const rowHeight = row.type === 'row' ? tallestCell.length * cellLineHeight : tallestCell.length * subHeadingLineHeight
-
-
-    //     return rowHeight;
+        // if(row.type === 'subheading' && !subheadingWrapText) {
+        //     tallestCell = ['subheading']; // if there is no wrapping the array length will only ever be 1
+        // };
     });
     
-    const rowHeight = row.type === 'row' ? tallestCell * cellLineHeight : tallestCell * subHeadingLineHeight
-    // console.log(wrappedData, rowHeight)
+    const rowHeight = row.type === 'row' ? tallestCell * cellLineHeight : tallestCell * subHeadingLineHeight;
 
     return [rowHeight, wrappedData]; //TODO: THIS IS THE FINAL DATA THAT I NEED!!!!!!!!
 };
@@ -325,7 +307,6 @@ export const getTextWidth = (font, size, text) => font.widthOfTextAtSize(text, s
 
 //this function takes a string and and charicters the string neeeds to be brioken by and returns a array of words
 export const brakeStringIntoWords = (word, char) => {
-    // console.log(word)
     let words = word.split(' ');
 
     if(char && char.length !== 0) {
@@ -333,7 +314,6 @@ export const brakeStringIntoWords = (word, char) => {
         words = words.map((word) => word.split(sym))
         })
     };
-    console.log(words)
     return [...words.flat(Infinity)];
 };
 
