@@ -11,7 +11,7 @@ import { calcColumnWidths, calcColumnHeaderWidths } from './functions/newLib/dat
 
 
 
-import { Doc, Table, Data, Header } from './classes';
+import { Doc, Table, Data, Heading, Cell } from './classes';
 
 //default colors
 const black = rgb(0, 0, 0);
@@ -22,6 +22,7 @@ const grey = rgb(.03, .03, .03);
 import {Document} from './classes/documents/document'
 import { VerticalTable } from './classes/tables/vertical-table';
 import { Row } from './classes/rows/row';
+import { Header } from './classes/headers/header';
 import { SubHeading } from './classes/rows/subheading';
 
 export async function drawTable({
@@ -220,7 +221,7 @@ export async function drawTable({
             subHeadingDividedYColor,
         );
     
-        const header = new Header(
+        const header = new Heading(
             table.docPage,
             columns, 
             headerData,
@@ -294,7 +295,7 @@ export async function drawTable({
 };
 
 
-export async function drawTable2(
+export async function createPDFTables(
     data, // Required - No Default - data t be printed
     page, // Required - No Default - page provided by pdf-lib
     pdfDoc, // Required - No Default - pdfDoc that the table will be printed on
@@ -389,31 +390,35 @@ export async function drawTable2(
     let remainingData = [...data];
 
     // for (let loop = 0; remainingData.length > 0; loop++) {
+    const t0 = performance.now();
     for (let loop = 0; loop < 1; loop++) {
-        const columnHeaderWidths = calcColumnHeaderWidths(columns, options);        //sets the initial width of the columns based on the size of the header
-        // const [columnDimensions, verticalDimensions, tableData, additionalData] = calcColumnWidths(data, columnHeaderWidths, options, document.pages[0]);
-        const [finalColumnDimensions, tableHeight, wrappedTableData, rData] = calcColumnWidths(data, columnHeaderWidths, options, document.pages[0]);
-
-        console.log('finalData', wrappedTableData)
+        //add page to the doc if needed
+        if(loop !== 0) document.addPage([792.0, 612.0]); 
         
-        //create the table TODO: add more table types
-        const table = new VerticalTable(remainingData, columns);
-        // console.log(tableData)
+        //create the table
+        const page = document.pages[loop];
+        const table = new VerticalTable(remainingData, columns, page, options, options);
+        
+        const data = table.getData();
+
+        //need the header height...
+        const header = new Header(page, columns, table.columnDimensions, table.width, options, options);
+        table.addHeader(header);
         
         //add rows to the table
-        remainingData.forEach((row) => {
-            // if(row.type === 'row') table.addRow(new Row(row, columns));
+        data.forEach((row) => {
+            if(row.type === 'row') table.addRow(new Row(row.data, row.rowHeight, columns));
             // if(row.type === 'subheading') table.addRow(new SubHeading(row, columns));
         });
 
-        //add page to the doc if needed
-        if(loop !== 0) document.addPage([792.0, 612.0]); 
 
         //add table to the document
         document.addTable(table);
         
-        remainingData = rData;
+        remainingData = table.remainingData;
     };
+    const t1 = performance.now();
+    console.log(`Call to doSomething took ${t1 - t0} milliseconds.`);
 
     return document;
 };

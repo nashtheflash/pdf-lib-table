@@ -1,10 +1,13 @@
+import { Cell } from '../cells/cell';
+
 export class Row {
     constructor(
         //page,
-        rowData,
+        data,
+        height,
         columnIds,
         {
-            startingX = undefined,
+            // startingX = undefined,
             dividedXThickness = 1,
             dividedXColor = undefined,
             tableWidth = undefined,
@@ -14,18 +17,18 @@ export class Row {
         } = {}
     ){  
         //this._page = page,
-        this._rowData = rowData,
+        this._data = data,
         this._columnIds = columnIds,
-        this._startingX = startingX,
+        // this._startingX = startingX,
         this._dividedXThickness = dividedXThickness,
         this._dividedXColor = dividedXColor,
         this._tableWidth = tableWidth,
         this._rowBackgroundColor = rowBackgroundColor,
         this._alternateRowColor = alternateRowColor,
         this._alternateRowColorValue = alternateRowColorValue
-        this._height = rowData[0].rowHeight,
-        this._startingY = rowData[0].startingY,
-        this._cells = []
+        this._height = height,
+        // this._startingY = rowData[0].startingY,
+        this._cells = Object.keys(data).map((cell) => new Cell(data[cell], height, cell))
     }
 
     addCell(cell) {

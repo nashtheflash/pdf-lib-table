@@ -70,10 +70,14 @@ export function columnWidthWrap(columns, options) {
     return columnDimensions;
 }
 
-export function calcColumnWidths(data, columnHeaderWidths, options, page) {
-    
-    const { startingY } = options;
-    const maxTableHeight = page.dimensions[1] - (page.dimensions[1] - startingY)//TODO: this needs to come from the table...
+export function calcHeaderHeight({columns, columnDimensions, headerLineHeight, headerTextSize, headerFont, additionalWrapCharacters}) {
+    const  headerLengths = columns.map(({ columnId, header }) => getWrapedText(headerFont, headerTextSize, columnDimensions[columnId].actualWidth, header, additionalWrapCharacters).length)
+
+    console.log(Math.max(...headerLengths))
+    return Math.max(...headerLengths) * headerLineHeight;
+}
+
+export function calcColumnWidths(data, columnHeaderWidths, maxTableHeight, options) {
     
     //most of these are optomizations
     let columnDimensions = columnHeaderWidths;

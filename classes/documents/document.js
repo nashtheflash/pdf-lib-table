@@ -6,7 +6,7 @@ export class Document {
         initialPage,
         pdfDoc,
         fonts,
-        colors
+        colors,
     ){
         this._initialPage = initialPage,
         this._pdfDoc = pdfDoc,
@@ -33,8 +33,10 @@ export class Document {
     }
 
     drawVerticalTables() {
-        //console.log('Drawing tables')
-
+        this._pages.forEach((page, i) => {
+            this._tables[i].setPage(page)
+            this._tables[i].drawTable()
+        })
     }
 
     drawHorizontalTables() {

@@ -8,10 +8,8 @@ export class Page {
     {
         this._page = page,
         this._dimensions = dimensions
-    }
-    
-    setPage(page) {
-        this._page = page
+        this._width = dimensions[0]
+        this._height = dimensions[1]
     }
     
     setDimensions(page) {
@@ -24,6 +22,14 @@ export class Page {
     
     get dimensions() {
         return this._dimensions
+    }
+
+    get height() {
+        return this._height
+    }
+    
+    get width() {
+        return this._width
     }
 }
 

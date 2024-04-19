@@ -486,7 +486,7 @@ export class Table {
     };
 };
 
-export class Header {
+export class Heading {
     constructor(
         page, 
         columns,

@@ -1,10 +1,15 @@
+import { calcHeaderHeight } from "../../functions/newLib/dataProcessing";
+
 export class Header {
     constructor(
         page, 
         columns,
-        headers,
         columnWidths,
+        tableWidth,
+        options,
         {
+            startingX = undefined,
+            startingY = undefined,
             headerBackgroundColor = undefined,
             headerWrapText = true,
             headerFont = undefined,
@@ -24,7 +29,11 @@ export class Header {
         this._page = page,
         this._columns = columns,
         this._columnWidths = columnWidths,
-        this._headers = headers,
+        this._tableWidth = tableWidth,
+        this._options = options,
+        // this._headers = headers,
+        this._startingX = startingX,
+        this._startingY = startingY,
         this._headerBackgroundColor = headerBackgroundColor,
         this._headerWrapText = headerWrapText,
         this._headerFont = headerFont,
@@ -38,15 +47,43 @@ export class Header {
         this._headerDividedXColor = headerDividedXColor,
         this._headerDividedYColor = headerDividedYColor,
         this._headerDividedXThickness = headerDividedXThickness,
-        this._headerDividedYThickness = headerDividedYThickness
+        this._headerDividedYThickness = headerDividedYThickness,
+        this._headerHeight
+    }
+
+    getHeight() {
+        const { additionalWrapCharacters } = this._options;
+        this._headerHeight = calcHeaderHeight({ columns: this._columns, columnDimensions: this._columnWidths, headerLineHeight: this._headerLineHeight, headerTextSize: this._headerTextSize, headerFont: this._headerFont, additionalWrapCharacters });
+        // this._headerHeight = calcHeaderHeight(this._columns, this._columnWidths, this._headerLineHeight, this._options);
+        console.log('headerHeight', this._headerHeight)
+        return this._headerHeight;
     }
 
     drawHeader(tableWidth) {
-        this.drawHeadings();
+        // this.drawHeadings();
         this.drawFill(tableWidth);
-        if(this._headerDividedX) this.drawDividerX(tableWidth);
-        if(this._headerDividedY) this.drawDividerY();
+        // if(this._headerDividedX) this.drawDividerX(tableWidth);
+        // if(this._headerDividedY) this.drawDividerY();
     };
+
+    drawFill(tableWidth) {
+        console.log('startinggx', this._startingX);
+        console.log(this._startingY);
+        console.log(this.getHeight());
+        console.log(this._tableWidth);
+        console.log(this._headerHeight);
+        console.log(this._headerBackgroundColor);
+
+        this._page.page.drawRectangle({
+            x: this._startingX,
+            y: this._startingY - this.getHeight(), //Math.max(headerHeight, headerFullTextHeight),
+            width: this._tableWidth,
+            height: this._headerHeight, //Math.max(headerHeight, headerFullTextHeight),
+            borderWidth: 0,
+            color: this._headerBackgroundColor,
+            opacity: 0.25
+        });
+    }
 
     drawHeadings() {
         let horizontalCursor = 0;
@@ -76,18 +113,6 @@ export class Header {
                 });
             })
             horizontalCursor += this._columnWidths[header.colID];
-        });
-    }
-
-    drawFill(tableWidth) {
-        this.tablePage.drawRectangle({
-            x: this._startingX,
-            y: this._startingY - this._headerSectionHeight, //Math.max(headerHeight, headerFullTextHeight),
-            width: tableWidth,
-            height: this._headerSectionHeight, //Math.max(headerHeight, headerFullTextHeight),
-            borderWidth: 0,
-            color: this._headerBackgroundColor,
-            opacity: 0.25
         });
     }
 
