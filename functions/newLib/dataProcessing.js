@@ -81,6 +81,7 @@ export function wrapHeader({columns, columnDimensions, headerLineHeight, headerT
 }
 
 export function calcColumnWidths(data, columnHeaderWidths, maxTableHeight, options) {
+    const { startingX } = options;
     
     //most of these are optomizations
     let columnDimensions = columnHeaderWidths;
@@ -109,7 +110,16 @@ export function calcColumnWidths(data, columnHeaderWidths, maxTableHeight, optio
 
     const remainingData = data.slice(tableData.length);
 
-    const [finalColumnDimensions, tableHeight, wrappedTableData] = currentInternalTableDimensions;
+    let [finalColumnDimensions, tableHeight, wrappedTableData] = currentInternalTableDimensions;
+
+    //adding the starting x for each column
+    let startingXCounter = startingX;
+    Object.keys(finalColumnDimensions).forEach((col) => {
+        finalColumnDimensions = {...finalColumnDimensions, [col]: {...finalColumnDimensions[col], startingX: startingXCounter}};
+        
+        startingXCounter += finalColumnDimensions[col].actualWidth;
+    })
+
     return [finalColumnDimensions, tableHeight, wrappedTableData, remainingData];
 };
 
@@ -290,8 +300,10 @@ export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrap
     let lines = [];
 
     for (let loop = 0; loop < wordsLength; loop++) {
-        // const currentWordLength = getTextWidth(font, fontSize, words[loop]+' ') + 1.3;
-        const currentWordLength = getTextWidth(font, fontSize, words[loop]);
+        //TODO: I am doing this due to PDF-Lib not supporting kerning. This makes it hard to wrap lines. I can proabably solve this better a diffrent way
+        let currentWordLength;
+        if(wordsLength == 1) currentWordLength = getTextWidth(font, fontSize, words[loop]);
+        if(wordsLength > 1) currentWordLength = getTextWidth(font, fontSize, words[loop]+' ');
         
         if (currentWordLength + currentLineLength > textAreaSize) {
             //current word makes the line overflow

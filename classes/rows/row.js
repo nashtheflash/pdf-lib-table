@@ -7,8 +7,11 @@ export class Row {
         height,
         columnIds,
         width,
+        columnDimension,
+        options,
         {
             startingX = undefined,
+            dividedX = undefined,
             dividedXThickness = 1,
             dividedXColor = undefined,
             tableWidth = undefined,
@@ -21,6 +24,7 @@ export class Row {
         this._data = data,
         this._columnIds = columnIds,
         this._startingX = startingX,
+        this._dividedX = dividedX,
         this._dividedXThickness = dividedXThickness,
         this._dividedXColor = dividedXColor,
         this._tableWidth = tableWidth,
@@ -29,8 +33,9 @@ export class Row {
         this._alternateRowColorValue = alternateRowColorValue
         this._height = height,
         this._width = width,
+        this._columnDimension = columnDimension,
         // this._startingY = rowData[0].startingY,
-        this._cells = Object.keys(data).map((cell) => new Cell(data[cell], height, cell))
+        this._cells = Object.keys(data).map((cell) => new Cell(page, data[cell], height, cell, this._columnDimension, options))
     }
 
     get cells() {
@@ -41,25 +46,22 @@ export class Row {
         return this._height;
     }
 
-    get type() {
-        return this._type;
-    }
-
     addCell(cell) {
         this._cells.push(cell);
     }
 
     drawRow(startingY, index) {
         this.drawRowBackground(startingY, index);
-        this.drawDividerX(startingY)
+        if(this._dividedX) this.drawDividerX(startingY)
+
+        this.cells.map((cell) => {
+            cell.drawCell(startingY);
+        })
         
         return this;
     }
 
     drawRowBackground(startingY, index) {
-        console.log(this._tableWidth);
-        // console.log(this._startingX);
-
         this._page.page.drawRectangle({
             x: this._startingX,
             // y: startingY - this._height + this._cellLineHeight - 1.25,

@@ -386,6 +386,7 @@ export async function createPDFTables(
     // build the document
     const document = new Document(page, pdfDoc, fonts, colors);
 
+
     //Add pages and print tables
     let remainingData = [...data];
 
@@ -397,18 +398,23 @@ export async function createPDFTables(
         
         //create the table
         const page = document.pages[loop];
+        drawRuler(page.page, 'x', 25, rgb(.21, .24, .85));
+        drawRuler(page.page, 'y', 25, rgb(.21, .24, .85));
+
+
         const table = new VerticalTable(remainingData, columns, page, options, options);
         
-        const data = table.getData();
+        const data = table.getData(); //this needs to run on instansiation.
 
         //need the header height...
         const header = new Header(page, columns, table.columnDimensions, table.width, options, options);
         table.addHeader(header);
         
+        console.log(table.columnDimensions);
+        
         //add rows to the table
-        // console.log('cellLineHeight', options.cellLineHeight)
         data.forEach((row) => {
-            if(row.type === 'row') table.addRow(new Row(page, row.data, row.rowHeight, columns, table.width ,options));
+            if(row.type === 'row') table.addRow(new Row(page, row.data, row.rowHeight, columns, table.width, table.columnDimensions, options, options));
             // if(row.type === 'subheading') table.addRow(new SubHeading(row, columns));
         });
 
