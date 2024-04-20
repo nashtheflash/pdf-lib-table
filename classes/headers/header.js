@@ -48,17 +48,20 @@ export class Header {
         this._headerDividedYColor = headerDividedYColor,
         this._headerDividedXThickness = headerDividedXThickness,
         this._headerDividedYThickness = headerDividedYThickness,
-        this._headerHeight,
+        this._height,
         this._wrappedHeaders
     }
 
+    get height () {
+        return this._height;
+    }
     getHeight() {
         const { additionalWrapCharacters } = this._options;
         
         this._wrappedHeaders = wrapHeader({ columns: this._columns, columnDimensions: this._columnWidths, headerLineHeight: this._headerLineHeight, headerTextSize: this._headerTextSize, headerFont: this._headerFont, additionalWrapCharacters });        
-        this._headerHeight = Math.max(...this._wrappedHeaders.map(({ height }) => height));
+        this._height = Math.max(...this._wrappedHeaders.map(({ height }) => height));
 
-        return this._headerHeight;
+        return this._height;
     }
 
     drawHeader(tableWidth) {
@@ -73,7 +76,7 @@ export class Header {
             x: this._startingX,
             y: this._startingY - this.getHeight(), //Math.max(headerHeight, headerFullTextHeight),
             width: this._tableWidth,
-            height: this._headerHeight, //Math.max(headerHeight, headerFullTextHeight),
+            height: this._height, //Math.max(headerHeight, headerFullTextHeight),
             borderWidth: 0,
             color: this._headerBackgroundColor,
             opacity: 0.25
@@ -82,8 +85,8 @@ export class Header {
 
     drawDividerX() {
         this._page.page.drawLine({
-            start: { x: this._startingX, y: this._startingY - this._headerHeight}, //- Math.max(headerHeight, headerFullTextHeight) },
-            end: { x: this._startingX + this._tableWidth, y: this._startingY - this._headerHeight}, // - Math.max(headerHeight, headerFullTextHeight) },
+            start: { x: this._startingX, y: this._startingY - this._height}, //- Math.max(headerHeight, headerFullTextHeight) },
+            end: { x: this._startingX + this._tableWidth, y: this._startingY - this._height}, // - Math.max(headerHeight, headerFullTextHeight) },
             thickness: this._headerDividedXThickness,
             color: this._headerDividedXColor,
             opacity: 1,
@@ -99,7 +102,7 @@ export class Header {
             const dividerX = i == 0 ? this._columnWidths[col].actualWidth : this._columnWidths[col].actualWidth + counter;
             this._page.page.drawLine({
                 start: { x: this._startingX + dividerX, y: this._startingY },
-                end: { x: this._startingX + dividerX, y: this._startingY - this._headerHeight}, //Math.max(headerHeight, headerFullTextHeight) },
+                end: { x: this._startingX + dividerX, y: this._startingY - this._height}, //Math.max(headerHeight, headerFullTextHeight) },
                 thickness: this._headerDividedYThickness,
                 color: this._headerDividedYColor,
                 opacity: 0.75,
@@ -115,9 +118,9 @@ export class Header {
             const textHeight = data.length * this._headerLineHeight;
             
             const justification = this._headerTextJustification === 'center' ? 
-            (this._headerHeight - textHeight) / 2 :
+            (this._height - textHeight) / 2 :
             this._headerTextJustification === 'bottom' ? 
-            this._headerHeight - textHeight :
+            this._height - textHeight :
             0;
 
             data.forEach((textLines, i) => {

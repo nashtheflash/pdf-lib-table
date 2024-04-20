@@ -406,8 +406,9 @@ export async function createPDFTables(
         table.addHeader(header);
         
         //add rows to the table
+        // console.log('cellLineHeight', options.cellLineHeight)
         data.forEach((row) => {
-            if(row.type === 'row') table.addRow(new Row(row.data, row.rowHeight, columns));
+            if(row.type === 'row') table.addRow(new Row(page, row.data, row.rowHeight, columns, table.width ,options));
             // if(row.type === 'subheading') table.addRow(new SubHeading(row, columns));
         });
 

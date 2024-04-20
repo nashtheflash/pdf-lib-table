@@ -177,9 +177,16 @@ export class VerticalTable {
     }
 
     drawTable() {
-        // console.log('drawing Table')
+        // Draw the header
         this.drawBoarder();
         this._header.drawHeader()
+
+        //Draw Rows
+        let rowY = this._startingY - this._header.height;
+        this._rows.map((row, index) => {
+            const currentRow = row.drawRow(rowY, index);
+            rowY -= currentRow.height
+        })
     }
     
     drawBoarder() {
