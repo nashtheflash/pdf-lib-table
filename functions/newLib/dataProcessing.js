@@ -1,3 +1,4 @@
+import { componentsToColor } from "pdf-lib";
 
 
 export function processorData(data, columns) {
@@ -70,11 +71,13 @@ export function columnWidthWrap(columns, options) {
     return columnDimensions;
 }
 
-export function calcHeaderHeight({columns, columnDimensions, headerLineHeight, headerTextSize, headerFont, additionalWrapCharacters}) {
-    const  headerLengths = columns.map(({ columnId, header }) => getWrapedText(headerFont, headerTextSize, columnDimensions[columnId].actualWidth, header, additionalWrapCharacters).length)
+export function wrapHeader({columns, columnDimensions, headerLineHeight, headerTextSize, headerFont, additionalWrapCharacters}) {
+    const  wrappedHeaders = columns.map(({ columnId, header }) => {
+        const wrappedText = getWrapedText(headerFont, headerTextSize, columnDimensions[columnId].actualWidth, header, additionalWrapCharacters);
+        return { columnId: columnId, data: wrappedText, height: wrappedText.length * headerLineHeight }
+    });
 
-    console.log(Math.max(...headerLengths))
-    return Math.max(...headerLengths) * headerLineHeight;
+    return wrappedHeaders;
 }
 
 export function calcColumnWidths(data, columnHeaderWidths, maxTableHeight, options) {
@@ -191,11 +194,11 @@ export function assignIntrinsicBasedColumnWidths(columnDimensions, maxTableWidth
 
     Object.keys(columnDimensions).forEach((col) => {
         const { columnMinWidth, intrinsicPercentageWidth, maxColumnWidth } = columnDimensions[col];
-
+        
         if(columnMinWidth == maxColumnWidth) actialWidth[col] = {...columnDimensions[col], actualWidth: columnMinWidth};
         
         if(columnMinWidth != maxColumnWidth) {
-            const width = excessWidth * (intrinsicPercentageWidth / columnsRecivingWidthintrinsicPercentageTotal);
+            const width = excessWidth * (intrinsicPercentageWidth / columnsRecivingWidthintrinsicPercentageTotal) + columnMinWidth;
             actialWidth[col] = {...columnDimensions[col], actualWidth: width}
         };
 
@@ -287,8 +290,9 @@ export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrap
     let lines = [];
 
     for (let loop = 0; loop < wordsLength; loop++) {
-        const currentWordLength = getTextWidth(font, fontSize, words[loop]+' ') + 1.3;
-
+        // const currentWordLength = getTextWidth(font, fontSize, words[loop]+' ') + 1.3;
+        const currentWordLength = getTextWidth(font, fontSize, words[loop]);
+        
         if (currentWordLength + currentLineLength > textAreaSize) {
             //current word makes the line overflow
             lines.push(currentLine);
@@ -296,11 +300,11 @@ export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrap
             currentLineLength = currentWordLength;
         } else if(loop == wordsLength - 1) {
             //last word in the string
-            currentLine = currentLine ? currentLine + ' ' + words[loop] : words[loop];
+            currentLine = currentLine != '' ? currentLine + ' ' + words[loop] : words[loop];
             lines.push(currentLine);
         } else if (currentWordLength + currentLineLength < textAreaSize) {
             //current word does not make the line overflow. add the word to the current line and continue
-            currentLine = currentLine ? currentLine + ' ' + words[loop] : words[loop];
+            currentLine = currentLine != '' ? currentLine + ' ' + words[loop] : words[loop];
             currentLineLength += currentWordLength;
         }
     }
