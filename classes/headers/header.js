@@ -1,4 +1,5 @@
-import { wrapHeader, getTextWidth } from "../../functions/newLib/dataProcessing";
+import { wrapHeader } from "../../functions/newLib/headerData";
+import { getTextWidth } from "../../functions/newLib/lib";
 
 export class Header {
     constructor(
@@ -24,7 +25,7 @@ export class Header {
             headerDividedYColor = undefined,
             headerDividedXThickness = 1,
             headerDividedYThickness = 1
-        } ={}
+        } ={},
     ){
         this._page = page,
         this._columns = columns,
@@ -49,12 +50,18 @@ export class Header {
         this._headerDividedXThickness = headerDividedXThickness,
         this._headerDividedYThickness = headerDividedYThickness,
         this._height,
-        this._wrappedHeaders
+        this._wrappedHeaders,
+        this.init()
+    }
+
+    init()  {
+        this.getHeight();
     }
 
     get height () {
         return this._height;
     }
+    
     getHeight() {
         const { additionalWrapCharacters } = this._options;
         

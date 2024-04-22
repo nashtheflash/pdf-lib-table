@@ -62,7 +62,7 @@ export async function drawTable({
     continuationFillerHeight=20, // this is the hight that will be left by the table
     continuationText='Continues on Next Page',
     //SUB HEADINGS
-    subheadingColumns, // Required - No Default - column definitions
+    subHeadingColumns, // Required - No Default - column definitions
     subHeadingBackgroundColor=blue, //Currently not supported
     subHeadingHeight=12, //Currently not supported
     subHeadingFont, //Currently not supported
@@ -143,7 +143,7 @@ export async function drawTable({
             pageDimensions[0],
             pageDimensions,
             continuationFillerHeight,
-            subheadingColumns,
+            subHeadingColumns,
             subHeadingFont,
             subHeadingTextSize,
             subHeadingLineHeight,
@@ -206,7 +206,7 @@ export async function drawTable({
             headerTextSize,
             //subheadingColumns,
             //SUB HEADINGS
-            subheadingColumns,
+            subHeadingColumns,
             subHeadingBackgroundColor,
             subHeadingHeight,
             subHeadingFont,
@@ -334,7 +334,7 @@ export async function createPDFTables(
         continuationFillerHeight,
         continuationText,
         //SUB HEADINGS
-        subheadingColumns, // Required - No Default - column definitions
+        subHeadingColumns, // Required - No Default - column definitions
         subHeadingBackgroundColor,
         subHeadingHeight,
         subHeadingFont, //Currently not supported
@@ -347,7 +347,7 @@ export async function createPDFTables(
         subHeadingDividedY,
         subHeadingDividedYThickness,
         subHeadingDividedYColor,
-        subheadingWrapText,
+        subHeadingWrapText,
         //HEADER SETTINGS
         headerFont, // Required -  No Default - any pdflib standard font
         headerDividedX,
@@ -378,7 +378,7 @@ export async function createPDFTables(
         additionalWrapCharacters,
         //cellPaddingBottom=0,
     } = {}) {
-
+    // console.log(options.subHeadingColumns)
     //Through errors if inputs are bad
     const error = checkUserInputs(arguments);
     if(error) return error;
@@ -390,32 +390,33 @@ export async function createPDFTables(
     //Add pages and print tables
     let remainingData = [...data];
 
-    // for (let loop = 0; remainingData.length > 0; loop++) {
     const t0 = performance.now();
-    for (let loop = 0; loop < 1; loop++) {
+    for (let loop = 0; remainingData.length > 0; loop++) {
         //add page to the doc if needed
         if(loop !== 0) document.addPage([792.0, 612.0]); 
         
         //create the table
         const page = document.pages[loop];
-        drawRuler(page.page, 'x', 25, rgb(.21, .24, .85));
-        drawRuler(page.page, 'y', 25, rgb(.21, .24, .85));
+        // drawRuler(page.page, 'x', 25, rgb(.21, .24, .85));
+        // drawRuler(page.page, 'y', 25, rgb(.21, .24, .85));
 
 
         const table = new VerticalTable(remainingData, columns, page, options, options);
         
-        const data = table.getData(); //this needs to run on instansiation.
+        const data = table.data;
 
         //need the header height...
         const header = new Header(page, columns, table.columnDimensions, table.width, options, options);
         table.addHeader(header);
         
-        console.log(table.columnDimensions);
+        // console.log(table.columnDimensions);
         
         //add rows to the table
+        console.log('data', data);
         data.forEach((row) => {
+            console.log(columns);
             if(row.type === 'row') table.addRow(new Row(page, row.data, row.rowHeight, columns, table.width, table.columnDimensions, options, options));
-            // if(row.type === 'subheading') table.addRow(new SubHeading(row, columns));
+            if(row.type === 'subheading') table.addRow(new SubHeading(page, row.data, row.rowHeight, columns, table.width, table.columnDimensions, options, options));
         });
 
 

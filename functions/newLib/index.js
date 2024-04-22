@@ -1,2 +1,2 @@
 export { checkUserInputs } from "./checkUserInputs";
-export { processorData } from "./dataProcessing";
+export { processData } from "./dataProcessing";

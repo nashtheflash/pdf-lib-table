@@ -50,9 +50,9 @@ export class Row {
         this._cells.push(cell);
     }
 
-    drawRow(startingY, index) {
+    drawRow(startingY, index, isLast) {
         this.drawRowBackground(startingY, index);
-        if(this._dividedX) this.drawDividerX(startingY)
+        if(this._dividedX) this.drawDividerX(startingY, isLast)
 
         this.cells.map((cell) => {
             cell.drawCell(startingY);
@@ -74,8 +74,8 @@ export class Row {
         });
     }
 
-    drawDividerX(startingY) {
-        // console.log('drawDividerX', this.startingX, this.tableWidth)
+    drawDividerX(startingY, isLast) {
+        if(isLast) return;
         this._page.page.drawLine({
             start: { x: this._startingX, y: startingY - this._height}, //- Math.max(headerHeight, headerFullTextHeight) },
             end: { x: this._startingX + this._width, y: startingY - this._height}, // - Math.max(headerHeight, headerFullTextHeight) },

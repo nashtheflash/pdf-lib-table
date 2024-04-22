@@ -1,4 +1,5 @@
-import { calcColumnWidths, calcColumnHeaderWidths, calcHeaderHeight } from "../../functions/newLib/dataProcessing";
+import { processData, calcColumnHeaderWidths, calcHeaderHeight } from "../../functions/newLib/dataProcessing";
+import {calcColumnWidths} from '../../functions/newLib/columnWidthStrtegies'
 
 export class VerticalTable {
     constructor(
@@ -52,7 +53,8 @@ export class VerticalTable {
         this._finalData,
         this._remainingData,
         this._header,
-        this._rows = []
+        this._rows = [],
+        this.init()
     }
     
     setPage(page) {
@@ -148,32 +150,35 @@ export class VerticalTable {
     get remainingData() {
         return this._remainingData
     }
+
+    get data () {
+        return this._finalData;
+    }
     
-    getData() {
+    init() {
         const columnHeaderWidths = this.getColumnHeaderWidths() 
         this.getColumnDimension(columnHeaderWidths);
-        // this.getColumnHeaderHeights();
-
-        return this._finalData;
     }
     
 
     getColumnHeaderWidths() {
-        const columnHeaderWidths = calcColumnHeaderWidths(this._columns, this._options);
+        const columnHeaderWidths = processData(this._columns, this._options);
         return columnHeaderWidths;
     }
     
-    // getColumnHeaderHeights() {
+    // getHeaderHeight() {
+    //     console.log(this._columns, this._columnDimensions);
     //     this._columnHeaderHeight = calcHeaderHeight(this._columns, this._columnDimensions, this._options);
     // }
 
     getColumnDimension(columnHeaderWidths) {
         const [finalColumnDimensions, tableHeight, wrappedTableData, remainingData] = calcColumnWidths(this._data, columnHeaderWidths, this._maxTableHeight, this._options);
-        
+
         this._columnDimensions = finalColumnDimensions;
         this._tableHeight = tableHeight;
         this._finalData = wrappedTableData;
         this._remainingData = remainingData;
+
     }
 
     drawTable() {
@@ -183,19 +188,20 @@ export class VerticalTable {
 
         //Draw Rows
         let rowY = this._startingY - this._header.height;
+        const numberOfRows = this._rows.length;
         this._rows.map((row, index) => {
-            const currentRow = row.drawRow(rowY, index);
+            const isLast = numberOfRows === index + 1;
+            const currentRow = row.drawRow(rowY, index, isLast);
             rowY -= currentRow.height
         })
     }
     
     drawBoarder() {
-
         this._page.page.drawRectangle({
             x: this._startingX - (this._tableBoarderThickness / 2),
-            y: this._startingY - this._maxTableHeight + (this._tableBoarderThickness / 2),
+            y: this._startingY - this._tableHeight - this._header.height + (this._tableBoarderThickness / 2),
             width: this._maxTableWidth + this._tableBoarderThickness,
-            height: this._maxTableHeight,
+            height: this._tableHeight + this._header.height,
             borderWidth: this._tableBoarderThickness,
             borderColor: this._tableBoarderColor,
             opacity: 0,

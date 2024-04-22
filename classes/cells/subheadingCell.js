@@ -1,11 +1,15 @@
-export class Cell {
+import { getParentColumnId } from "../../functions/newLib/headerData";
+
+export class SubheadingCell {
     constructor(
         page,
         data,
         height,
         columnId,
+        columns,
         columnDimension,
         {
+            subHeadingColumns,
             startingX,
             cellFont,
             cellTextColor,
@@ -20,7 +24,7 @@ export class Cell {
         this._data = data,
         this._columnId = columnId,
         this._columnDimensions = columnDimension,
-        this._startingX = columnDimension[columnId].startingX,
+        this._startingX = getParentColumnId(columnId, subHeadingColumns),
         this._tableStartingX = startingX,
         this._height = height,
         this._cellFont = cellFont,
