@@ -9,7 +9,7 @@ export class Cell {
             startingX,
             cellFont,
             cellTextColor,
-            cellTextSize,
+            cellTextSize = 10,
             cellLineHeight,
             dividedY,
             dividedYThickness,

@@ -13,7 +13,7 @@ export class SubheadingCell {
             startingX,
             cellFont,
             cellTextColor,
-            cellTextSize,
+            cellTextSize = 10,
             cellLineHeight,
             dividedY,
             dividedYThickness,

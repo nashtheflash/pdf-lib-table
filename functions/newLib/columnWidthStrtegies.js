@@ -16,9 +16,11 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
         
         const finalColumnDimensions = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, currentInternalTableDimensions, maxTableHeight, columns, options }); //TODO: this needs to just run the calc on one row. then check to see if the data needs to be updated
         const prevWrapedData = currentInternalTableDimensions ? currentInternalTableDimensions[2] : {}
+        
+        // console.log('GTH', data[loop], tableData, columnDimensions, finalColumnDimensions, prevWrapedData)
         const [tableHeight, wrappedTableData] = getTableHeight({ rowData: data[loop], tableData, columnDimensions, finalColumnDimensions, prevWrapedData, options })
        
-        // console.log(tableHeight, maxTableHeight)
+        console.log('cecking height', tableHeight, maxTableHeight)
         if(tableHeight < maxTableHeight) {
             currentInternalTableDimensions = [finalColumnDimensions, tableData, wrappedTableData]
             columnDimensions = finalColumnDimensions;
@@ -37,6 +39,7 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
 
 
     const remainingData = data.slice(tableData.length);
+    console.log('CITD', currentInternalTableDimensions)
     let [finalColumnDimensions, tableHeight, wrappedTableData] = currentInternalTableDimensions;
     // console.log('CCW', wrappedTableData);
 

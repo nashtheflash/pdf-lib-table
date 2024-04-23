@@ -24,7 +24,7 @@ export class VerticalTable {
             tableBoarder = true,
             tableBoarderThickness = 1,
             tableBoarderColor = undefined,
-            continuationFillerHeight = undefined
+            continuationFillerHeight = 20
         } = {}
     ){
         //REQUIRED

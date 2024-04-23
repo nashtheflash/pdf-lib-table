@@ -1,6 +1,7 @@
 import { getWrapedText } from "./lib";
 
 export function getTableHeight({ rowData, tableData, columnDimensions, finalColumnDimensions, prevWrapedData, options }) {
+    // console.log('GTH', prevWrapedData);
     //if the data is unchanged. dont run calcRowHeights
     let wrappedTableData;
 
@@ -11,6 +12,7 @@ export function getTableHeight({ rowData, tableData, columnDimensions, finalColu
     } else {
         //calc entire table
         const wrappedTbleData = calcRowHeights(tableData, finalColumnDimensions, options);
+        // console.log(wrappedTbleData);
         wrappedTableData = wrappedTbleData;
     }
     // console.log(wrappedTableData)
@@ -32,10 +34,12 @@ export function calcRowHeights(data, columnDimensions, options){
 
 export function getRowHeightAndWrapText(row, columnWidths, options) {
     const { cellFont, cellTextSize, cellLineHeight, subHeadingWrapText, subHeadingFont, subHeadingLineHeight, subHeadingTextSize, subheadingColumns, additionalWrapCharacters } = options;
+    // console.log('GRHAWT', cellTextSize, cellLineHeight, subHeadingWrapText);
+
     let tallestCell = 0;
     let wrappedData = {...row.data};
     Object.keys(row.data).forEach(cell => {
-        
+        console.log('look', columnWidths, cell, columnWidths[cell], columnWidths); 
         if(row.type === 'row') {
             const wrappedText = getWrapedText(cellFont, cellTextSize, columnWidths[cell].actualWidth, row.data[cell], additionalWrapCharacters);
             wrappedData = { ...wrappedData, [cell]: wrappedText}
