@@ -1,4 +1,4 @@
-import { getParentColumnId } from "../../functions/newLib/headerData";
+import { getSubheadingStartingX } from "../../functions/newLib/subHeading"; 
 
 export class SubheadingCell {
     constructor(
@@ -22,9 +22,10 @@ export class SubheadingCell {
     ){
         this._page = page,
         this._data = data,
+        this._columns = columns,
         this._columnId = columnId,
         this._columnDimensions = columnDimension,
-        this._startingX = getParentColumnId(columnId, subHeadingColumns),
+        this._startingX = getSubheadingStartingX(columnDimension, columnId, subHeadingColumns),
         this._tableStartingX = startingX,
         this._height = height,
         this._cellFont = cellFont,
@@ -37,7 +38,7 @@ export class SubheadingCell {
     }
 
     drawCell(startingY) {
-        if(this._dividedY && this._startingX !== this._tableStartingX) this.drawDividerY(startingY);
+        if(this._dividedY && this._startingX && this._startingX !== this._tableStartingX) this.drawDividerY(startingY);
         this.drawCellText(startingY);
     }
 
@@ -52,9 +53,8 @@ export class SubheadingCell {
     }
 
     drawCellText(startingY) {
-
-        // const {values, startingX, startingY} = this.data;
-        // console.log('drawCellText', values, startingX, startingY)
+        if(!this._data) return;
+        console.log('data', this._data);
 
         this._data.forEach((text, i) => {
             this._page.page.drawText(text, {

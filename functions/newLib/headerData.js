@@ -63,10 +63,9 @@ export function wrapHeader({columns, columnDimensions, headerLineHeight, headerT
 }
 
 export function getParentColumnId(column, subHeadingDefs) {
+    console.log(subHeadingDefs); 
     const def = subHeadingDefs.find(({columnId}) => columnId === column); 
     const col = def?.parentId ? def.parentId : '';
-    console.log(subHeadingDefs, column, def, col)
-   TODO PICKUP HERE. IDK WHY THIS IS UNDIFINED 
     return def?.parentId ? def.parentId : '';
 }
 

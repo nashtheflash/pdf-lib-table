@@ -1,3 +1,4 @@
+import { getParentColumnId } from "../../functions/newLib/headerData";
 import { SubheadingCell } from "../cells/subheadingCell";
 
 export class SubHeading {
@@ -10,6 +11,7 @@ export class SubHeading {
         columnDimension,
         options,
         {
+            subHeadingColumns,
             startingX = undefined,
             tableWidth = undefined,
             subHeadingBackgroundColor = undefined,
@@ -31,7 +33,7 @@ export class SubHeading {
         this._width = width,
         this._columnDimension = columnDimension,
         // this._startingY = rowData[0].startingY,
-        this._cells = Object.keys(data).map((cell) => new SubheadingCell(page, data[cell], height, cell, columns, this._columnDimension, options))
+        this._cells = Object.keys(data).map((cell) => new SubheadingCell(page, data[getParentColumnId(cell, subHeadingColumns)], height, cell, columns, this._columnDimension, options))
     }
 
     get cells() {
@@ -48,30 +50,30 @@ export class SubHeading {
 
     drawRow(startingY, index, isLast) {
         this.drawRowBackground(startingY, index);
-        // if(this._dividedX) this.drawDividerX(startingY, isLast)
-        //
-        // this.cells.map((cell) => {
-        //     cell.drawCell(startingY);
-        // })
-        // 
-        // return this;
+        if(this._subHeadingDividedX) this.drawDividerX(startingY, isLast)
+
+        this.cells.map((cell) => {
+            cell.drawCell(startingY);
+        })
+
+        return this;
     }
 
     drawRowBackground(startingY, index) {
-        console.log('drawing subheader')
+        // console.log('drawing subheader')
         this._page.page.drawRectangle({
             x: this._startingX,
-            // y: startingY - this._height + this._cellLineHeight - 1.25,
             y: startingY - this._height,
             width: this._width,
             height: this._height,
             borderWidth: 0,
-            color: index % 2 !== 0 && this._alternateRowColor ? this._alternateRowColorValue : this._rowBackgroundColor,
+            color: this._subHeadingBackgroundColor,
             opacity: 0.25
         });
     }
 
     drawDividerX(startingY, isLast) {
+        console.log(this._height, startingY)
         if(isLast) return;
         this._page.page.drawLine({
             start: { x: this._startingX, y: startingY - this._height}, //- Math.max(headerHeight, headerFullTextHeight) },

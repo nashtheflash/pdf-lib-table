@@ -70,11 +70,11 @@ export function distributeExcessTableWidth(data, columnDimensions, options){
 };
 
 export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, currentInternalTableDimensions, options }){
-    const { cellFont, cellTextSize, maxTableWidth, startingY, subheadingWrapText, subheadingColumns } = options;
+    const { cellFont, cellTextSize, maxTableWidth, startingY, subHeadingWrapText, subheadingColumns } = options;
     let adjustedColumnDimensions = columnDimensions
     
     Object.keys(adjustedColumnDimensions).forEach((col) => {
-        if(rowType === 'subheading' && !subheadingWrapText) return;
+        if(rowType === 'subheading' && !subHeadingWrapText) return;
         //the below modifies the column if it is a subheading
         const subheadingDef = rowType === 'subheading' ? subheadingColumns.find(({parentId}) => parentId === col) : undefined;
         const parentColumnId = rowType === 'subheading' ? subheadingDef.parentId : col;
