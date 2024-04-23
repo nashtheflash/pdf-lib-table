@@ -73,7 +73,7 @@ export class SubHeading {
     }
 
     drawDividerX(startingY, isLast) {
-        console.log(this._height, startingY)
+        // console.log(this._height, startingY)
         if(isLast) return;
         this._page.page.drawLine({
             start: { x: this._startingX, y: startingY - this._height}, //- Math.max(headerHeight, headerFullTextHeight) },

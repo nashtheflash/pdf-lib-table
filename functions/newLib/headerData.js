@@ -63,10 +63,15 @@ export function wrapHeader({columns, columnDimensions, headerLineHeight, headerT
 }
 
 export function getParentColumnId(column, subHeadingDefs) {
-    console.log(subHeadingDefs); 
     const def = subHeadingDefs.find(({columnId}) => columnId === column); 
-    const col = def?.parentId ? def.parentId : '';
-    return def?.parentId ? def.parentId : '';
+    const col = def?.parentId ? def.parentId : undefined;
+    return col;
+}
+
+export function getChildColumnId(column, subHeadingDefs) {
+    const def = subHeadingDefs.find(({parentId}) => parentId === column); 
+    const col = def?.columnId ? def.columnId : false;
+    return col;
 }
 
 

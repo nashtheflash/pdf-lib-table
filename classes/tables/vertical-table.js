@@ -172,7 +172,7 @@ export class VerticalTable {
     // }
 
     getColumnDimension(columnHeaderWidths) {
-        const [finalColumnDimensions, tableHeight, wrappedTableData, remainingData] = calcColumnWidths(this._data, columnHeaderWidths, this._maxTableHeight, this._options);
+        const [finalColumnDimensions, tableHeight, wrappedTableData, remainingData] = calcColumnWidths(this._data, this._columns, columnHeaderWidths, this._maxTableHeight, this._options);
 
         this._columnDimensions = finalColumnDimensions;
         this._tableHeight = tableHeight;

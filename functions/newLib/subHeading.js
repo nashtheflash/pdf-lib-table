@@ -5,6 +5,6 @@ export function getSubheadingStartingX(columnDimension, columnId, subHeadingColu
     if(!parentId) return;
     const columnMeasurments = columnDimension[parentId];
 
-    console.log(columnMeasurments, parentId);
+    // console.log(columnMeasurments, parentId);
     return columnMeasurments.startingX
 }

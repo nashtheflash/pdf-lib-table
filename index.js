@@ -378,7 +378,7 @@ export async function createPDFTables(
         additionalWrapCharacters,
         //cellPaddingBottom=0,
     } = {}) {
-    // console.log(options.subHeadingColumns)
+    // console.log(options.subHeadingWrapText)
     //Through errors if inputs are bad
     const error = checkUserInputs(arguments);
     if(error) return error;
@@ -412,9 +412,9 @@ export async function createPDFTables(
         // console.log(table.columnDimensions);
         
         //add rows to the table
-        console.log('data', data);
+        // console.log('data', data);
         data.forEach((row) => {
-            console.log(columns);
+            // console.log(columns);
             if(row.type === 'row') table.addRow(new Row(page, row.data, row.rowHeight, columns, table.width, table.columnDimensions, options, options));
             if(row.type === 'subheading') table.addRow(new SubHeading(page, row.data, row.rowHeight, columns, table.width, table.columnDimensions, options, options));
         });

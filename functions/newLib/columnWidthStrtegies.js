@@ -1,7 +1,8 @@
 import { getTextWidth, getLongestWordFromString, sumColumnProperties, fileterObject } from "./lib";
 import { getTableHeight } from "./tableData";
+import { getParentColumnId, getChildColumnId } from "./headerData";
 
-export function calcColumnWidths(data, columnHeaderWidths, maxTableHeight, options) {
+export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeight, options) {
     const { startingX } = options;
     
     //most of these are optomizations
@@ -13,7 +14,7 @@ export function calcColumnWidths(data, columnHeaderWidths, maxTableHeight, optio
     for (let loop = 0; loop < dataLength; loop++){
         tableData.push(data[loop])
         
-        const finalColumnDimensions = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, currentInternalTableDimensions, maxTableHeight, options }); //TODO: this needs to just run the calc on one row. then check to see if the data needs to be updated
+        const finalColumnDimensions = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, currentInternalTableDimensions, maxTableHeight, columns, options }); //TODO: this needs to just run the calc on one row. then check to see if the data needs to be updated
         const prevWrapedData = currentInternalTableDimensions ? currentInternalTableDimensions[2] : {}
         const [tableHeight, wrappedTableData] = getTableHeight({ rowData: data[loop], tableData, columnDimensions, finalColumnDimensions, prevWrapedData, options })
        
@@ -37,7 +38,7 @@ export function calcColumnWidths(data, columnHeaderWidths, maxTableHeight, optio
 
     const remainingData = data.slice(tableData.length);
     let [finalColumnDimensions, tableHeight, wrappedTableData] = currentInternalTableDimensions;
-    console.log('CCW', wrappedTableData);
+    // console.log('CCW', wrappedTableData);
 
     //adding the starting x for each column
     let startingXCounter = startingX;
@@ -50,7 +51,7 @@ export function calcColumnWidths(data, columnHeaderWidths, maxTableHeight, optio
     return [finalColumnDimensions, finalTableHeight, wrappedTableData, remainingData];
 };
 
-export function distributeExcessTableWidth(data, columnDimensions, options){
+export function distributeExcessTableWidth(data, columnDimensions, options){ // more options could be added here
     const { maxTableWidth } = options;
     const columnTotals = sumColumnProperties(columnDimensions);
 
@@ -69,25 +70,44 @@ export function distributeExcessTableWidth(data, columnDimensions, options){
     }
 };
 
-export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, currentInternalTableDimensions, options }){
-    const { cellFont, cellTextSize, maxTableWidth, startingY, subHeadingWrapText, subheadingColumns } = options;
+export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, currentInternalTableDimensions, columns, options }){
+    const { cellFont, cellTextSize, subHeadingFont, subHeadingTextSize, maxTableWidth, startingY, subHeadingWrapText, subheadingColumns } = options; 
     let adjustedColumnDimensions = columnDimensions
-    
-    Object.keys(adjustedColumnDimensions).forEach((col) => {
+    const cols = Object.keys(adjustedColumnDimensions)
+
+    for (let loop = 0; loop < cols.length; loop++) {        
+   
         if(rowType === 'subheading' && !subHeadingWrapText) return;
-        //the below modifies the column if it is a subheading
-        const subheadingDef = rowType === 'subheading' ? subheadingColumns.find(({parentId}) => parentId === col) : undefined;
-        const parentColumnId = rowType === 'subheading' ? subheadingDef.parentId : col;
-        const sunHeadingColumnId = rowType === 'subheading' ? subheadingDef.columnId : col;
+       
+        const col = cols[loop];
+        if(rowType === 'subheading' && false) return;
+
+        let font = cellFont;
+        let textSize = cellTextSize;
+        let columnDataId = col;
+        let text = rowData.data[columnDataId];
+
+        if( rowType === 'subheading' ) {
+            const childColumnId = getChildColumnId(col, subheadingColumns);
+            columnDataId = false;
+            if(childColumnId) {
+                font = subHeadingFont;
+                textSize = subHeadingTextSize;
+                columnDataId = getParentColumnId(childColumnId, subheadingColumns)
+                text = rowData.data[childColumnId];
+            }
+        }
+
+        if(!columnDataId) continue;
+
+        const cellStringLength = getTextWidth(font, textSize, text);
+        const longestCellWord = getLongestWordFromString(text, options);
+        const cellMinWidth = getTextWidth(font, textSize, longestCellWord);
         
-        const cellStringLength = getTextWidth(cellFont, cellTextSize, rowData.data[sunHeadingColumnId]);
-        const longestCellWord = getLongestWordFromString(rowData.data[sunHeadingColumnId], options);
-        const cellMinWidth = getTextWidth(cellFont, cellTextSize, longestCellWord);
-        
-        if(adjustedColumnDimensions[parentColumnId].columnMinWidth < cellMinWidth) adjustedColumnDimensions[parentColumnId].columnMinWidth = cellMinWidth;
-        if(adjustedColumnDimensions[parentColumnId].maxColumnWidth < cellStringLength) adjustedColumnDimensions[parentColumnId].maxColumnWidth = cellStringLength;
-        adjustedColumnDimensions[parentColumnId].intrinsicPercentageWidth = updateIntrinsicPercentageWidth(adjustedColumnDimensions[parentColumnId].maxColumnWidth, maxTableWidth);
-    });
+        if(adjustedColumnDimensions[columnDataId].columnMinWidth < cellMinWidth && text != '') adjustedColumnDimensions[columnDataId].columnMinWidth = cellMinWidth;
+        if(adjustedColumnDimensions[columnDataId].maxColumnWidth < cellStringLength) adjustedColumnDimensions[columnDataId].maxColumnWidth = cellStringLength;
+        adjustedColumnDimensions[columnDataId].intrinsicPercentageWidth = updateIntrinsicPercentageWidth(adjustedColumnDimensions[columnDataId].maxColumnWidth, maxTableWidth);
+    };
     
     //Find the actual column widths
     const finalColumnDimensions = distributeExcessTableWidth(tableData, adjustedColumnDimensions, options);

@@ -13,7 +13,7 @@ export function getTableHeight({ rowData, tableData, columnDimensions, finalColu
         const wrappedTbleData = calcRowHeights(tableData, finalColumnDimensions, options);
         wrappedTableData = wrappedTbleData;
     }
-    console.log(wrappedTableData)
+    // console.log(wrappedTableData)
     const tableHeight = wrappedTableData.reduce(( acc, val) => acc + val.rowHeight, 0)
     return [tableHeight, wrappedTableData]
 };
