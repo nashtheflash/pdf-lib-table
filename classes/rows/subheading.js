@@ -32,8 +32,8 @@ export class SubHeading {
         this._height = height,
         this._width = width,
         this._columnDimension = columnDimension,
-        // this._startingY = rowData[0].startingY,
-        this._cells = Object.keys(data).map((cell) => new SubheadingCell(page, data[getParentColumnId(cell, subHeadingColumns)], height, cell, columns, this._columnDimension, options))
+        // this._cells = Object.keys(data).map((cell) => new SubheadingCell(page, data[getParentColumnId(cell, subHeadingColumns)], height, cell, columns, this._columnDimension, options))
+        this._cells = columns.map(({columnId, parentId}) => new SubheadingCell(page, data[columnId], height, parentId, this._columnDimension, options))
     }
 
     get cells() {
@@ -60,7 +60,6 @@ export class SubHeading {
     }
 
     drawRowBackground(startingY, index) {
-        // console.log('drawing subheader')
         this._page.page.drawRectangle({
             x: this._startingX,
             y: startingY - this._height,
@@ -73,7 +72,6 @@ export class SubHeading {
     }
 
     drawDividerX(startingY, isLast) {
-        // console.log(this._height, startingY)
         if(isLast) return;
         this._page.page.drawLine({
             start: { x: this._startingX, y: startingY - this._height}, //- Math.max(headerHeight, headerFullTextHeight) },

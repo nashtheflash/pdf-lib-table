@@ -1,6 +1,5 @@
 export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrapCharacters) => {
     const words = brakeStringIntoWords(text, additionalWrapCharacters);
-    // console.log(words);
     const wordsLength = words.length;
 
     let currentLine = '';
@@ -27,9 +26,7 @@ export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrap
             currentLine = currentLine != '' ? currentLine + ' ' + words[loop] : words[loop];
             currentLineLength += currentWordLength;
         }
-        // console.log(currentLine, textAreaSize, currentLineLength);
     }
-    // console.log(lines);
     return lines;
 };
 

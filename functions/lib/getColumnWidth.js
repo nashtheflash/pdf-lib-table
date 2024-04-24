@@ -55,8 +55,6 @@ export const getMinColumnWidth = (data, columns, columnIds, cellFont, cellTextSi
             }
         }
     }
-    //console.log(rowData);
-
     
     //Headers
     const columnLength = columns.length;
@@ -82,22 +80,12 @@ export const getMinColumnWidth = (data, columns, columnIds, cellFont, cellTextSi
     });
     
     //gets the minumum width for the column
-    //console.log(Object.keys(columns))
     columns.forEach(({columnId}, i) => {
-        // console.log('rowDataaaa', columnId);
-        //console.log('loop',i, headerData[row], headerData, row);
-        //const columnHeader = columns.find((col) => col.columnId == row).header;
-        
-        //if(!rowData[row].length)console.log('this row', row);
-        
         const longestHeaderItem = headerData[columnId] ? headerData[columnId][headerData[columnId].length -1] : 0
         const longestColumnItem = rowData[columnId][rowData[columnId].length -1];
         
-        // console.log('rowData', getTextWidth(headerFont, headerTextSize, longestHeaderItem), getTextWidth(cellFont, cellTextSize, longestColumnItem));
-        
         rowData[columnId] = Math.max(getTextWidth(headerFont, headerTextSize, longestHeaderItem), getTextWidth(cellFont, cellTextSize, longestColumnItem))
     })
-    // console.log(rowData);
     return rowData
 };
 

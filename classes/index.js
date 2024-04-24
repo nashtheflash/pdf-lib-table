@@ -60,16 +60,12 @@ export class Data {
             if(rowItem.subheading) {
                 
                 const row = {...rowItem.subheading, tableRowType: 'subheading'};
-                // console.log('row', row);
 
                 Object.keys(row).map((key) => {
                     // const subheadingIDs = this.subheadingColumns.map
                     if(key === 'tableRowType' ) return;
 
-                    // console.log(this.subheadingColumns.find(({ columnId }) => columnId == key));
-
                     const parent = this.subheadingColumns.find(({ columnId }) => columnId == key)?.parentId;
-                    //console.log(parent)
                     parent ? row[parent] = row[key] : '';
                     delete row[key];
                 });
@@ -98,7 +94,6 @@ export class Data {
     tableCells(columnWidths, loop){
     
         return this.getData().map((row, rowIndex) => {
-            //console.log('this.getData', this.getData())
             let xCounter = loop === 0 ? this.startingX : this.appendedPageStartX;
             return Object.keys(row).map(col => {
                 //const cellValues = getWrapedText(this.cellFont, this.cellTextSize, columnWidths[col], row[col], this.additionalWrapCharacters);
@@ -143,7 +138,6 @@ export class Data {
     }
     
     tableRows(columnWidths) {
-        //console.log('this.data', this.data)
         const rowdata = this.getData().map(row => {
             const longestItem = Object.keys(row).reduce((longest, col) => {
                 const wrappedText = row.tableRowType == 'row' ? 
@@ -152,7 +146,6 @@ export class Data {
                 return wrappedText.length > longest.length ? wrappedText : longest;
             }, []);
 
-            //if(row.tableRowType !== 'row') console.log((row.tableRowType == 'row' ? this.cellLineHeight : this.subHeadingLineHeight))
 
 
             return {
@@ -168,7 +161,6 @@ export class Data {
         const rowDetail = [...this.tableCells(columnWidths, loop)];
         const tableHeaderHeight = this.tableHeader(columnWidths);
 
-        // console.log(rowDetail);
 
         const startingY = loop === 0 ? this.startingY : this.appendedPageStartY;
         
@@ -196,7 +188,6 @@ export class Data {
             
             if(pageCount > loop) return;
             
-            // console.log(row)
             const rowType = row.find(({ colID }) => colID == "tableRowType").values.join('');
             const rowFiltered = row.filter(({ colID }) => colID !== "tableRowType");
 
@@ -207,7 +198,6 @@ export class Data {
                 startingY: (startingY - tableHeaderHeight) - (rowType === 'row' ? this.cellLineHeight : this.subHeadingLineHeight) - counter
             }));
 
-            // console.log({values: mod, type: rowType})
 
             modifiedRows[i] = {values: mod, type: rowType};
             // modifiedRows[i] = mod;
@@ -399,10 +389,8 @@ export class Table {
     get rows() {
         const rows = [];
 
-        // console.log(this.data);
 
         this.data.forEach(row => {
-                //console.log(row)
                 let newRow;
 
                 if(row.type === 'row') {
@@ -686,7 +674,6 @@ export class Row {
     }
 
     drawRowBackground(index) {
-        // console.log('drawRowBackground', this.startingX)
 
         this.page.drawRectangle({
             x: this.startingX,
@@ -700,7 +687,6 @@ export class Row {
     }
 
     drawDividerX() {
-        // console.log('drawDividerX', this.startingX, this.tableWidth)
         this.page.drawLine({
             start: { x: this.startingX, y: this.startingY - this.height + this.cellLineHeight - 1.25}, //- Math.max(headerHeight, headerFullTextHeight) },
             end: { x: this.startingX + this.tableWidth, y: this.startingY - this.height + this.cellLineHeight - 1.25}, // - Math.max(headerHeight, headerFullTextHeight) },
@@ -823,7 +809,6 @@ export class SubheaderRow {
     }
 
     drawRowBackground(index) {
-        // console.log('subheader', this.startingX)
 
         this.page.drawRectangle({
             x: this.startingX,
@@ -880,7 +865,6 @@ export class Cell {
     drawCellText(page) {
 
         const {values, startingX, startingY} = this.data;
-        // console.log('drawCellText', values, startingX, startingY)
 
         values.forEach((text, i) => {
             page.page.drawText(text, {

@@ -5,7 +5,7 @@ export class Row {
         page,
         data,
         height,
-        columnIds,
+        columns,
         width,
         columnDimension,
         options,
@@ -22,7 +22,7 @@ export class Row {
     ){  
         this._page = page,
         this._data = data,
-        this._columnIds = columnIds,
+        this._columns = columns,
         this._startingX = startingX,
         this._dividedX = dividedX,
         this._dividedXThickness = dividedXThickness,
@@ -34,8 +34,7 @@ export class Row {
         this._height = height,
         this._width = width,
         this._columnDimension = columnDimension,
-        // this._startingY = rowData[0].startingY,
-        this._cells = Object.keys(data).map((cell) => new Cell(page, data[cell], height, cell, this._columnDimension, options))
+        this._cells = columns.map(({columnId}) => new Cell(page, data[columnId], height, columnId, this._columnDimension, options))
     }
 
     get cells() {

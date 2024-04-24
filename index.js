@@ -119,10 +119,6 @@ export async function drawTable({
     
     //Loop through each page
     for (let loop = 0; loop < remaningData.length; loop++) {
-        //console.log('loop', loop)
-
-        // console.log('subHeadingBackgroundColor',subHeadingBackgroundColor);
-        
         const docData = new Data(
             remaningData, 
             columns,
@@ -161,7 +157,6 @@ export async function drawTable({
         // drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
         // drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
 
-        // console.log('tableData', tableData)
         
         const table = new Table(
             docObj,
@@ -253,11 +248,9 @@ export async function drawTable({
         //Draw Table
         // if(table.dividedY) table.drawDividerY();
         if(table.tableBoarder) table.drawBoarder();
-        //console.log('boarder done')
 
         //Headers 
         header.drawHeader(table.tableWidth);
-        //console.log('header done')
 
         //Rows
         const rows = table.rows;
@@ -266,12 +259,10 @@ export async function drawTable({
             //Row
             // const t6 = performance.now();
             row.drawRowBackground(index);
-            //console.log('Background done')
             // if(row.type === 'row') row.drawRowBackground(index);
             // if(row.type === 'subheading' && ) row.drawRowBackground(index);
 
             if(index !== table.rows.length - 1 && table.dividedX)row.drawDividerX();
-            //console.log('divider x done')
 
             
             //Cells
@@ -279,9 +270,7 @@ export async function drawTable({
                 cell.drawCell(docObj, table.dividedY);
             });
 
-            //console.log('all cells done')
         });
-        //console.log('rows done')
         
         
         remaningData = remaningData.slice(table.rows.length);
@@ -378,25 +367,27 @@ export async function createPDFTables(
         additionalWrapCharacters,
         //cellPaddingBottom=0,
     } = {}) {
-    // console.log(options.subHeadingWrapText)
-    //Through errors if inputs are bad
+    
+    //Check for bad data being passed
     const error = checkUserInputs(arguments);
     if(error) return error;
 
     // build the document
     const document = new Document(page, pdfDoc, fonts, colors);
 
-
     //Add pages and print tables
     let remainingData = [...data];
 
     const t0 = performance.now();
+    //Builds each page for the table. 
     for (let loop = 0; remainingData.length > 0; loop++) {
+       
         //add page to the doc if needed
         if(loop !== 0) document.addPage([792.0, 612.0]); 
         
         //create the table
         const page = document.pages[loop];
+       
         // drawRuler(page.page, 'x', 25, rgb(.21, .24, .85));
         // drawRuler(page.page, 'y', 25, rgb(.21, .24, .85));
 
@@ -409,14 +400,11 @@ export async function createPDFTables(
         const header = new Header(page, columns, table.columnDimensions, table.width, options, options);
         table.addHeader(header);
         
-        // console.log(table.columnDimensions);
         
         //add rows to the table
-        // console.log('data', data);
         data.forEach((row) => {
-            // console.log(columns);
             if(row.type === 'row') table.addRow(new Row(page, row.data, row.rowHeight, columns, table.width, table.columnDimensions, options, options));
-            if(row.type === 'subheading') table.addRow(new SubHeading(page, row.data, row.rowHeight, columns, table.width, table.columnDimensions, options, options));
+            if(row.type === 'subheading') table.addRow(new SubHeading(page, row.data, row.rowHeight, subHeadingColumns, table.width, table.columnDimensions, options, options));
         });
 
 

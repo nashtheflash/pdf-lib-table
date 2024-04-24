@@ -11,16 +11,15 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
     let currentInternalTableDimensions;
     let finalTableHeight;
     const  dataLength = data.length;
+
     for (let loop = 0; loop < dataLength; loop++){
         tableData.push(data[loop])
         
         const finalColumnDimensions = adjustColumnWidth({ rowData: data[loop], rowType: data[loop].type, tableData, columnDimensions, currentInternalTableDimensions, maxTableHeight, columns, options }); //TODO: this needs to just run the calc on one row. then check to see if the data needs to be updated
+    
         const prevWrapedData = currentInternalTableDimensions ? currentInternalTableDimensions[2] : {}
-        
-        // console.log('GTH', data[loop], tableData, columnDimensions, finalColumnDimensions, prevWrapedData)
-        const [tableHeight, wrappedTableData] = getTableHeight({ rowData: data[loop], tableData, columnDimensions, finalColumnDimensions, prevWrapedData, options })
+        const [tableHeight, wrappedTableData] = getTableHeight({ rowData: data[loop], tableData, columnDimensions, finalColumnDimensions, prevWrapedData, columns, options })
        
-        console.log('cecking height', tableHeight, maxTableHeight)
         if(tableHeight < maxTableHeight) {
             currentInternalTableDimensions = [finalColumnDimensions, tableData, wrappedTableData]
             columnDimensions = finalColumnDimensions;
@@ -39,9 +38,7 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
 
 
     const remainingData = data.slice(tableData.length);
-    console.log('CITD', currentInternalTableDimensions)
     let [finalColumnDimensions, tableHeight, wrappedTableData] = currentInternalTableDimensions;
-    // console.log('CCW', wrappedTableData);
 
     //adding the starting x for each column
     let startingXCounter = startingX;
@@ -75,19 +72,16 @@ export function distributeExcessTableWidth(data, columnDimensions, options){ // 
 
 export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, currentInternalTableDimensions, columns, options }){
     const { cellFont, cellTextSize, subHeadingFont, subHeadingTextSize, maxTableWidth, startingY, subHeadingWrapText, subheadingColumns } = options; 
+    
     let adjustedColumnDimensions = columnDimensions
     const cols = Object.keys(adjustedColumnDimensions)
 
-    for (let loop = 0; loop < cols.length; loop++) {        
-   
+    for (let loop = 0; loop < cols.length; loop++) {           
         if(rowType === 'subheading' && !subHeadingWrapText) return;
-       
-        const col = cols[loop];
-        if(rowType === 'subheading' && false) return;
 
         let font = cellFont;
         let textSize = cellTextSize;
-        let columnDataId = col;
+        let columnDataId = cols[loop];
         let text = rowData.data[columnDataId];
 
         if( rowType === 'subheading' ) {
@@ -128,7 +122,6 @@ export function assignIntrinsicBasedColumnWidths(columnDimensions, maxTableWidth
     //the measurment will start at the min width then then distrubute excess based on the intrinsicPercentageWidth
     let actialWidth = {};
 
-    const totalNumberOfColumns = Object.keys(columnDimensions).length;
     const columnsRecivingWidth = fileterObject(columnDimensions, obj => obj.columnMinWidth !== obj.maxColumnWidth);
     const columnsRecivingWidthintrinsicPercentageTotal = Object.values(columnsRecivingWidth).reduce((acc, obj)  => acc + obj.intrinsicPercentageWidth , 0);
     const excessWidth = maxTableWidth - columnTotals.columnMinWidth;

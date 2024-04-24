@@ -48,10 +48,6 @@ export class Cell {
     }
 
     drawCellText(startingY) {
-
-        // const {values, startingX, startingY} = this.data;
-        // console.log('drawCellText', values, startingX, startingY)
-
         this._data.forEach((text, i) => {
             this._page.page.drawText(text, {
                 x: this._startingX,
