@@ -6,11 +6,14 @@ export class VerticalTable {
         data,
         columns,
         page,
+        isInitPage,
         options,
         //TABLE
         {
             startingX = 0,
             startingY = 0,
+            appendedPageStartX = undefined,
+            appendedPageStartY = undefined,
             dividedX = true,
             dividedY = true,
             dividedXColor = undefined,
@@ -32,8 +35,8 @@ export class VerticalTable {
         this._options = options,
         this._page = page,
         //TABLE
-        this._startingX = startingX,
-        this._startingY = startingY,
+        this._startingX = isInitPage ? startingX : appendedPageStartX,
+        this._startingY = isInitPage ? startingY : appendedPageStartY,
         this._dividedX = dividedX,
         this._dividedY = dividedY,
         this._dividedXColor = dividedXColor,
@@ -41,10 +44,11 @@ export class VerticalTable {
         this._dividedXThickness = dividedXThickness,
         this._dividedYThickness = dividedYThickness,
         this._maxTableWidth = maxTableWidth,
-        this._maxTableHeight = page.height - (page.height - startingY) - continuationFillerHeight,
+        this._maxTableHeight = page.height - (page.height - this._startingY) - continuationFillerHeight,
         this._tableBoarder = tableBoarder,
         this._tableBoarderThickness = tableBoarderThickness,
         this._tableBoarderColor = tableBoarderColor,
+        this._continuationFillerHeight = continuationFillerHeight,
         this._columnDimensions,
         this._columnHeaderHeight,
         this._tableHeight,
@@ -52,6 +56,7 @@ export class VerticalTable {
         this._remainingData,
         this._header,
         this._rows = [],
+        this._isInitPage;
         this.init()
     }
     
@@ -96,7 +101,7 @@ export class VerticalTable {
     setPage(page) {
         this._page = page;
     }
-
+    
     addRow(row) {
         this._rows.push(row)
     }
@@ -107,12 +112,13 @@ export class VerticalTable {
     
     drawTable() {
         // Draw the header
-        this.drawBoarder();
+        if(this._tableBoarder) this.drawBoarder();
         this._header.drawHeader()
 
         //Draw Rows
         let rowY = this._startingY - this._header.height;
         const numberOfRows = this._rows.length;
+
         this._rows.map((row, index) => {
             const isLast = numberOfRows === index + 1;
             const currentRow = row.drawRow(rowY, index, isLast);

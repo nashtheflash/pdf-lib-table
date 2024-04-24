@@ -1,7 +1,7 @@
 /**
- * 
- * 
- */
+    * 
+    * 
+    */
 import { rgb } from 'pdf-lib';
 import { continuationSection } from './fillers';
 import { drawRuler } from 'pdf-lib-utils';
@@ -95,7 +95,7 @@ export async function drawTable({
     rowBackgroundColor=white, //rgb(1, 1, 1) - can pass in any pdf-lib rgb value
     alternateRowColor=true, // Default true - cell rows will alternate background color
     alternateRowColorValue=grey, //rgb(.03, .03, .03) - can pass in any pdf-lib rgb value
-    
+
     //CELL SETTINGS
     cellFont, // Required -  No Default - any pdflib standard font
     cellTextSize=10, // Default 10 - cell text size
@@ -105,7 +105,7 @@ export async function drawTable({
     additionalWrapCharacters=['/']
     //cellPaddingBottom=0,
 } = {}) {
-    
+
     const doc = new Doc(
         page,
         pdfDoc,
@@ -113,10 +113,10 @@ export async function drawTable({
         startingY,
         pageDimensions,
     );
-        
+
     let remaningData = data;//this needs to be the counter in the loop below
     let endingY;
-    
+
     //Loop through each page
     for (let loop = 0; loop < remaningData.length; loop++) {
         const docData = new Data(
@@ -144,20 +144,20 @@ export async function drawTable({
             subHeadingTextSize,
             subHeadingLineHeight,
         );
-        
+
         const columnWidths = docData.tableColumnWidths(loop === 0 ? startingX : appendedPageStartX, loop === 0 ? startingY : appendedPageStartY);
         const dataProcessor = docData.dataProcessor(columnWidths, loop);
         const headerData = docData.tableHeaders(columnWidths);
         const autoHeaderHeight = docData.tableHeader(columnWidths);
-        
+
         const docObj = loop === 0 ? doc.documentPages[0] : doc.addPage();
         const tableData = dataProcessor.data.filter(row => row.values[0] && row.values[0].page === 0);//TODO: refactor because this is slicing data it is always looking for the current page data
         const tableHeight = tableData.reduce((accumulator, currentValue) => accumulator + currentValue.values[0].rowHeight,0,);
-        
+
         // drawRuler(docObj.page, 'x', 25, rgb(.21, .24, .85));
         // drawRuler(docObj.page, 'y', 25, rgb(.21, .24, .85));
 
-        
+
         const table = new Table(
             docObj,
             tableData,
@@ -215,7 +215,7 @@ export async function drawTable({
             subHeadingDividedYThickness,
             subHeadingDividedYColor,
         );
-    
+
         const header = new Heading(
             table.docPage,
             columns, 
@@ -241,10 +241,10 @@ export async function drawTable({
             headerDividedYColor,
             headerDividedXThickness,
             headerDividedYThickness,
-            
+
         );
 
-        
+
         //Draw Table
         // if(table.dividedY) table.drawDividerY();
         if(table.tableBoarder) table.drawBoarder();
@@ -254,7 +254,7 @@ export async function drawTable({
 
         //Rows
         const rows = table.rows;
-        
+
         rows.forEach((row, index) => {
             //Row
             // const t6 = performance.now();
@@ -264,17 +264,17 @@ export async function drawTable({
 
             if(index !== table.rows.length - 1 && table.dividedX)row.drawDividerX();
 
-            
+
             //Cells
             row.cells.forEach((cell) => {
                 cell.drawCell(docObj, table.dividedY);
             });
 
         });
-        
-        
+
+
         remaningData = remaningData.slice(table.rows.length);
-        
+
         if(remaningData.length > 0) continuationFiller(table.docPage, continuesOnNextPage, continuationTextX, continuationTextY, headerFont, continuationFontSize, continuationFillerHeight, continuationText);
         if(remaningData.length === 0) endingY = table.remainingTableSpace;
     };
@@ -357,7 +357,7 @@ export async function createPDFTables(
         rowBackgroundColor,
         alternateRowColor,
         alternateRowColorValue,
-        
+
         //CELL SETTINGS
         cellFont, // Required -  No Default - any pdflib standard font
         cellTextSize,
@@ -367,7 +367,7 @@ export async function createPDFTables(
         additionalWrapCharacters,
         //cellPaddingBottom=0,
     } = {}) {
-    
+
     //Check for bad data being passed
     const error = checkUserInputs(arguments);
     if(error) return error;
@@ -380,39 +380,37 @@ export async function createPDFTables(
 
     const t0 = performance.now();
     //Builds each page for the table. 
-    for (let loop = 0; remainingData.length > 0; loop++) {
-       
-        //add page to the doc if needed
-        if(loop !== 0) document.addPage([792.0, 612.0]); 
-        
-        //create the table
-        const page = document.pages[loop];
-       
-        // drawRuler(page.page, 'x', 25, rgb(.21, .24, .85));
-        // drawRuler(page.page, 'y', 25, rgb(.21, .24, .85));
+        for (let loop = 0; remainingData.length > 0; loop++) {
+
+            //add page to the doc if needed
+            if(loop !== 0) document.addPage([792.0, 612.0]); 
+
+            //create the table
+            const page = document.pages[loop];
+
+            // drawRuler(page.page, 'x', 25, rgb(.21, .24, .85));
+            // drawRuler(page.page, 'y', 25, rgb(.21, .24, .85));
+
+            const isInitPage = loop === 0 ? true : false;
+            const table = new VerticalTable(remainingData, columns, page, isInitPage, options, options);
+            const data = table.data;
+
+            const header = new Header(page, columns, table.columnDimensions, table.width, isInitPage, options, options);
+            table.addHeader(header);
+
+            //add rows to the table
+            data.forEach((row) => {
+                if(row.type === 'row') table.addRow(new Row(page, row.data, row.rowHeight, columns, table.width, table.columnDimensions, options, options));
+                if(row.type === 'subheading') table.addRow(new SubHeading(page, row.data, row.rowHeight, subHeadingColumns, table.width, table.columnDimensions, options, options));
+                if(row.type === 'subheading') console.log('addingSubheading')
+            });
 
 
-        const table = new VerticalTable(remainingData, columns, page, options, options);
-        
-        const data = table.data;
+            //add table to the document
+            document.addTable(table);
 
-        //need the header height...
-        const header = new Header(page, columns, table.columnDimensions, table.width, options, options);
-        table.addHeader(header);
-        
-        
-        //add rows to the table
-        data.forEach((row) => {
-            if(row.type === 'row') table.addRow(new Row(page, row.data, row.rowHeight, columns, table.width, table.columnDimensions, options, options));
-            if(row.type === 'subheading') table.addRow(new SubHeading(page, row.data, row.rowHeight, subHeadingColumns, table.width, table.columnDimensions, options, options));
-        });
-
-
-        //add table to the document
-        document.addTable(table);
-        
-        remainingData = table.remainingData;
-    };
+            remainingData = table.remainingData;
+        };
     const t1 = performance.now();
     console.log(`Call to doSomething took ${t1 - t0} milliseconds.`);
 

@@ -9,7 +9,7 @@ export const getWrapedText = (font, fontSize, textAreaSize, text, additionalWrap
     for (let loop = 0; loop < wordsLength; loop++) {
         //TODO: I am doing this due to PDF-Lib not supporting kerning. This makes it hard to wrap lines. I can proabably solve this better a diffrent way
         let currentWordLength;
-        if(wordsLength == 1) currentWordLength = getTextWidth(font, fontSize, words[loop]);
+        if(wordsLength == 1) currentWordLength = getTextWidth(font, fontSize, words[loop]+' '); //this line did not have the space when built. this is finiky to get right and may need to be adjusted further
         if(wordsLength > 1) currentWordLength = getTextWidth(font, fontSize, words[loop]+' ');
         
         if (currentWordLength + currentLineLength > textAreaSize) {

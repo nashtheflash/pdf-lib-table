@@ -39,9 +39,9 @@ export function columnWidthWrap(columns, options) {
     let columnDimensions;
 
     columns.forEach((col) => {
-        const headerStringLength = getTextWidth(headerFont, headerTextSize, col.header);
+        const headerStringLength = getTextWidth(headerFont, headerTextSize, col.header+' '); //may need to adjust this at some point in the future
         const longestHeaderWord = getLongestWordFromString(col.header, options);
-        const columnMinWidth = getTextWidth(headerFont, headerTextSize, longestHeaderWord);
+        const columnMinWidth = getTextWidth(headerFont, headerTextSize, longestHeaderWord+' ');
 
         columnDimensions =  {...columnDimensions, [col.columnId]: {
             columnMinWidth: columnMinWidth,

@@ -7,10 +7,13 @@ export class Header {
         columns,
         columnWidths,
         tableWidth,
+        isInitPage,
         options,
         {
             startingX = undefined,
             startingY = undefined,
+            appendedPageStartX = undefined,
+            appendedPageStartY = undefined,
             headerBackgroundColor = undefined,
             headerWrapText = true,
             headerFont = undefined,
@@ -32,9 +35,8 @@ export class Header {
         this._columnWidths = columnWidths,
         this._tableWidth = tableWidth,
         this._options = options,
-        // this._headers = headers,
-        this._startingX = startingX,
-        this._startingY = startingY,
+        this._startingX = isInitPage ? startingX : appendedPageStartX,
+        this._startingY = isInitPage ? startingY : appendedPageStartY,
         this._headerBackgroundColor = headerBackgroundColor,
         this._headerWrapText = headerWrapText,
         this._headerFont = headerFont,
@@ -131,7 +133,6 @@ export class Header {
             0;
 
             data.forEach((textLines, i) => {
-                
                 const alignment = this._headerTextAlignment === 'center' ? 
                 (this._columnWidths[columnId].actualWidth - getTextWidth(this._headerFont, this._headerTextSize, textLines)) / 2 : 
                 this._headerTextAlignment === 'right' ?  this._columnWidths[columnId].actualWidth - getTextWidth(this._headerFont, this._headerTextSize, textLines) : 
@@ -139,7 +140,7 @@ export class Header {
 
                 this._page.page.drawText(textLines, {
                     x: this._startingX + alignment + horizontalCursor,
-                    y: this._startingY - justification - this._headerLineHeight - (this._headerLineHeight * i),
+                    y: this._startingY - justification - this._headerLineHeight - (this._headerLineHeight * i) + 1,
                     size: this._headerTextSize,
                     font: this._headerFont,
                     color: this._headerTextColor,

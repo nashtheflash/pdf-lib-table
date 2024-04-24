@@ -49,6 +49,8 @@ export class SubHeading {
     }
 
     drawRow(startingY, index, isLast) {
+        console.log('Drawing Subheader');
+
         this.drawRowBackground(startingY, index);
         if(this._subHeadingDividedX) this.drawDividerX(startingY, isLast)
 

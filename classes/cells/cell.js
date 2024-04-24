@@ -51,7 +51,7 @@ export class Cell {
         this._data.forEach((text, i) => {
             this._page.page.drawText(text, {
                 x: this._startingX,
-                y: startingY - this._cellLineHeight - (this._cellLineHeight * i),
+                y: startingY - this._cellLineHeight - (this._cellLineHeight * i) + 1,
                 font: this._cellFont,
                 size: this._cellTextSize,
                 lineHeight: this._cellLineHeight,

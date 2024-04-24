@@ -51,25 +51,6 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
     return [finalColumnDimensions, finalTableHeight, wrappedTableData, remainingData];
 };
 
-export function distributeExcessTableWidth(data, columnDimensions, options){ // more options could be added here
-    const { maxTableWidth } = options;
-    const columnTotals = sumColumnProperties(columnDimensions);
-
-    //All columns can take as much space as they need. No wraping is required
-    if(columnTotals.intrinsicPercentageWidth <= 100) {
-        return assignFullColumnWidths(columnDimensions, maxTableWidth, columnTotals);
-    }
-    
-    //Some column warpping will occore
-    if(columnTotals.intrinsicPercentageWidth > 100 && columnTotals.columnMinWidth < maxTableWidth) {
-        //the column min widths fit in the table
-        return assignIntrinsicBasedColumnWidths(columnDimensions, maxTableWidth, columnTotals);
-    }
-
-    if(columnTotals.intrinsicPercentageWidth > 100 && columnTotals.columnMinWidth > maxTableWidth) {
-    }
-};
-
 export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, currentInternalTableDimensions, columns, options }){
     const { cellFont, cellTextSize, subHeadingFont, subHeadingTextSize, maxTableWidth, startingY, subHeadingWrapText, subheadingColumns } = options; 
     
@@ -115,6 +96,26 @@ export function adjustColumnWidth({ rowData, rowType, tableData, columnDimension
 
 export function updateIntrinsicPercentageWidth(maxColumnLength, tableWidth) {
     return (maxColumnLength / tableWidth) * 100;
+};
+
+export function distributeExcessTableWidth(data, columnDimensions, options){ // more options could be added here
+    const { maxTableWidth } = options;
+    const columnTotals = sumColumnProperties(columnDimensions);
+
+    //All columns can take as much space as they need. No wraping is required
+    if(columnTotals.intrinsicPercentageWidth <= 100) {
+        return assignFullColumnWidths(columnDimensions, maxTableWidth, columnTotals);
+    }
+    
+    //Some column warpping will occore
+    if(columnTotals.intrinsicPercentageWidth > 100 && columnTotals.columnMinWidth < maxTableWidth) {
+        //the column min widths fit in the table
+        return assignIntrinsicBasedColumnWidths(columnDimensions, maxTableWidth, columnTotals);
+    }
+
+    if(columnTotals.intrinsicPercentageWidth > 100 && columnTotals.columnMinWidth > maxTableWidth) {
+        throw new Error(`Table Overflow!! minTableWidth: ${columnTotals.columnMinWidth} maxTableWidth: ${maxTableWidth}`);
+    }
 };
 
 
