@@ -70,7 +70,7 @@ export function getParentColumnId(column, subHeadingDefs) {
 
 export function getChildColumnId(column, subHeadingDefs) {
     const def = subHeadingDefs.find(({parentId}) => parentId === column); 
-    const col = def?.columnId ? def.columnId : false;
+    const col = def?.columnId ? def.columnId : undefined;
     return col;
 }
 

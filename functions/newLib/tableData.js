@@ -1,4 +1,5 @@
 import { getWrapedText } from "./lib";
+import { getParentColumnId, getChildColumnId } from "./headerData";
 
 export function getTableHeight({ rowData, tableData, columnDimensions, finalColumnDimensions, prevWrapedData, columns, options }) {
     //if the data is unchanged. dont run calcRowHeights
@@ -29,7 +30,7 @@ export function calcRowHeights(columns, data, columnDimensions, options){
 };
 
 export function getRowHeightAndWrapText(row, columnWidths, columns, options) {
-    const { cellFont, cellTextSize, cellLineHeight, subHeadingWrapText, subHeadingFont, subHeadingLineHeight, subHeadingTextSize, subheadingColumns, additionalWrapCharacters } = options;
+    const { cellFont, cellTextSize, cellLineHeight, subHeadingWrapText, subHeadingFont, subHeadingLineHeight, subHeadingTextSize, subHeadingColumns, additionalWrapCharacters } = options;
     let tallestCell = 0;
     let wrappedData = {...row.data};
 
@@ -42,11 +43,16 @@ export function getRowHeightAndWrapText(row, columnWidths, columns, options) {
 
         // if(row.type === 'subheading' && subHeadingWrapText) {
         if(row.type === 'subheading') {
-            const subheadingDef = subheadingColumns.find(({columnId: column}) => columnId === column);
-            const parentColumnId = subheadingDef.parentId;
-            const subHeadingColumnId = subheadingDef.columnId;
-            const wrappedText = getWrapedText(subHeadingFont, subHeadingTextSize, columnWidths[parentColumnId].actualWidth, row.data[subHeadingColumnId], additionalWrapCharacters);
-            wrappedData = { ...wrappedData, [parentColumnId]: wrappedText}
+            // const subheadingDef = subheadingColumns.find(({columnId: column}) => columnId === column);
+            // const subheadingDef = getParentColumnId(columnId, subheadingColumns)
+            // const parentColumnId = getParentColumnId(columnId, subheadingColumns)
+            // const parentColumnId = subheadingDef.parentId;
+            // const subHeadingColumnId = subheadingDef.columnId;
+            const subHeadingColumnId = getChildColumnId(columnId, subHeadingColumns);
+            if(!subHeadingColumnId) return;
+
+            const wrappedText = getWrapedText(subHeadingFont, subHeadingTextSize, columnWidths[columnId].actualWidth, row.data[subHeadingColumnId], additionalWrapCharacters);
+            wrappedData = { ...wrappedData, [columnId]: wrappedText}
             if(wrappedText.length > tallestCell) tallestCell = wrappedText.length;
         };
         if(row.type === 'subheading' && !subHeadingWrapText) {

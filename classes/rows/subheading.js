@@ -32,8 +32,7 @@ export class SubHeading {
         this._height = height,
         this._width = width,
         this._columnDimension = columnDimension,
-        // this._cells = Object.keys(data).map((cell) => new SubheadingCell(page, data[getParentColumnId(cell, subHeadingColumns)], height, cell, columns, this._columnDimension, options))
-        this._cells = columns.map(({columnId, parentId}) => new SubheadingCell(page, data[columnId], height, parentId, this._columnDimension, options))
+        this._cells = columns.map(({columnId, parentId}) => new SubheadingCell(page, data[parentId], height, parentId, columns, this._columnDimension, options))
     }
 
     get cells() {
@@ -49,8 +48,6 @@ export class SubHeading {
     }
 
     drawRow(startingY, index, isLast) {
-        console.log('Drawing Subheader');
-
         this.drawRowBackground(startingY, index);
         if(this._subHeadingDividedX) this.drawDividerX(startingY, isLast)
 

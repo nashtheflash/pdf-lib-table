@@ -29,7 +29,8 @@ export class Page {
     }
     
     get width() {
-        return this._width
+        // return this._width
+        return this._page.getWidth();
     }
 }
 

@@ -52,7 +52,7 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
 };
 
 export function adjustColumnWidth({ rowData, rowType, tableData, columnDimensions, currentInternalTableDimensions, columns, options }){
-    const { cellFont, cellTextSize, subHeadingFont, subHeadingTextSize, maxTableWidth, startingY, subHeadingWrapText, subheadingColumns } = options; 
+    const { cellFont, cellTextSize, subHeadingFont, subHeadingTextSize, maxTableWidth, startingY, subHeadingWrapText, subHeadingColumns } = options; 
     
     let adjustedColumnDimensions = columnDimensions
     const cols = Object.keys(adjustedColumnDimensions)
@@ -66,12 +66,12 @@ export function adjustColumnWidth({ rowData, rowType, tableData, columnDimension
         let text = rowData.data[columnDataId];
 
         if( rowType === 'subheading' ) {
-            const childColumnId = getChildColumnId(col, subheadingColumns);
+            const childColumnId = getChildColumnId(cols[loop], subHeadingColumns);
             columnDataId = false;
             if(childColumnId) {
                 font = subHeadingFont;
                 textSize = subHeadingTextSize;
-                columnDataId = getParentColumnId(childColumnId, subheadingColumns)
+                columnDataId = getParentColumnId(childColumnId, subHeadingColumns)
                 text = rowData.data[childColumnId];
             }
         }

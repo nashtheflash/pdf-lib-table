@@ -1,5 +1,3 @@
-import { getSubheadingStartingX } from "../../functions/newLib/subHeading"; 
-
 export class SubheadingCell {
     constructor(
         page,
@@ -9,7 +7,6 @@ export class SubheadingCell {
         columns,
         columnDimension,
         {
-            subHeadingColumns,
             startingX,
             cellFont,
             cellTextColor,
@@ -25,7 +22,7 @@ export class SubheadingCell {
         this._columns = columns,
         this._columnId = columnId,
         this._columnDimensions = columnDimension,
-        this._startingX = getSubheadingStartingX(columnDimension, columnId, subHeadingColumns),
+        this._startingX = columnDimension[columnId].startingX,
         this._tableStartingX = startingX,
         this._height = height,
         this._cellFont = cellFont,
@@ -54,6 +51,7 @@ export class SubheadingCell {
 
     drawCellText(startingY) {
         if(!this._data) return;
+        console.log(this._data);
 
         this._data.forEach((text, i) => {
             this._page.page.drawText(text, {
