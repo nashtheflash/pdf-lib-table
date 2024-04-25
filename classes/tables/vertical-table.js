@@ -21,7 +21,7 @@ export class VerticalTable {
             dividedXThickness = 1,
             dividedYThickness = 1,
             maxTableWidth = undefined,
-            maxTableHeight = undefined,
+            // maxTableHeight = undefined,
             rowHeightSizing = 'auto',
             tableBoarder = true,
             tableBoarderThickness = 1,

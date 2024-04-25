@@ -307,7 +307,7 @@ export async function createPDFTables(
         dividedXThickness,
         dividedYThickness,
         maxTableWidth,
-        maxTableHeight,
+        // maxTableHeight,
         rowHeightSizing,
         tableBoarder,
         tableBoarderThickness,
@@ -395,6 +395,7 @@ export async function createPDFTables(
             const isInitPage = loop === 0 ? true : false;
             const table = new VerticalTable(remainingData, columns, page, isInitPage, options, options);
             const data = table.data;
+            // if(loop === 0) console.log(table.data);
 
             const header = new Header(page, columns, table.columnDimensions, table.width, isInitPage, options, options);
             table.addHeader(header);

@@ -27,7 +27,8 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
         }
 
         if(tableHeight > maxTableHeight) {
-            tableData.pop();
+            tableData.pop()
+            // tableData.pop()
             break;
         }
 
@@ -36,8 +37,8 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
         }
     };
 
-
     const remainingData = data.slice(tableData.length);
+
     let [finalColumnDimensions, tableHeight, wrappedTableData] = currentInternalTableDimensions;
 
     //adding the starting x for each column

@@ -2,7 +2,8 @@ export class Page {
     constructor(
         page, 
         {
-            dimensions = [612, 792]
+            // dimensions = [612, 792]
+            dimensions = [792, 612]
         } ={}
     )
     {
@@ -25,7 +26,8 @@ export class Page {
     }
 
     get height() {
-        return this._height
+        // return this._height
+        return this._page.getHeight();
     }
     
     get width() {
