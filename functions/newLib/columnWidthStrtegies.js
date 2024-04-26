@@ -19,16 +19,15 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
     
         const prevWrapedData = currentInternalTableDimensions ? currentInternalTableDimensions[2] : {}
         const [tableHeight, wrappedTableData] = getTableHeight({ rowData: data[loop], tableData, columnDimensions, finalColumnDimensions, prevWrapedData, columns, options })
-       
+        
         if(tableHeight < maxTableHeight) {
             currentInternalTableDimensions = [finalColumnDimensions, tableData, wrappedTableData]
             columnDimensions = finalColumnDimensions;
             finalTableHeight = tableHeight;
         }
 
-        if(tableHeight > maxTableHeight) {
+        if(tableHeight >= maxTableHeight) {
             tableData.pop()
-            // tableData.pop()
             break;
         }
 
@@ -38,6 +37,7 @@ export function calcColumnWidths(data, columns, columnHeaderWidths, maxTableHeig
     };
 
     const remainingData = data.slice(tableData.length);
+    console.log(remainingData);
 
     let [finalColumnDimensions, tableHeight, wrappedTableData] = currentInternalTableDimensions;
 
