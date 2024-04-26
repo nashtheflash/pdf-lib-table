@@ -1,4 +1,4 @@
-import { getTextWidth } from "../../functions/newLib/lib";
+import { getTextWidth } from "../../lib";
 import {Page} from './page'
 
 export class Document {

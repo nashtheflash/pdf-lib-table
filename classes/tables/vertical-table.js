@@ -1,4 +1,4 @@
-import { processData } from "../../functions/newLib/dataProcessing";
+import { processData } from "../../lib/dataProcessing";
 
 export class VerticalTable {
     constructor(

@@ -1,5 +1,5 @@
-import { wrapHeader } from "../../functions/newLib/headerData";
-import { getTextWidth } from "../../functions/newLib/lib";
+import { wrapHeader } from "../../lib/headerData";
+import { getTextWidth } from "../../lib";
 
 export class Header {
     constructor(

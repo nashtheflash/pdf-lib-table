@@ -1,16 +1,12 @@
-/**
-    * 
-    * 
-    */
-import { drawRuler } from 'pdf-lib-utils';
+import { checkUserInputs } from './lib'
 
-import { checkUserInputs } from './functions/newLib'
-
-import {Document} from './classes/documents/document'
-import { VerticalTable } from './classes/tables/vertical-table';
-import { Row } from './classes/rows/row';
-import { Header } from './classes/headers/header';
-import { SubHeading } from './classes/rows/subheading';
+import {
+    Document,
+    VerticalTable,
+    Header,
+    Row,
+    SubHeading,
+} from './classes';
 
 //default colors
 // const black = rgb(0, 0, 0);

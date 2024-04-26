@@ -1,4 +1,3 @@
-import { getParentColumnId } from "../../functions/newLib/headerData";
 import { SubheadingCell } from "../cells/subheadingCell";
 
 export class SubHeading {
