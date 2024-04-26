@@ -97,7 +97,6 @@ export async function createPDFTables(
         additionalWrapCharacters,
         //cellPaddingBottom=0,
     } = {}) {
-    // console.log('subs', options.subHeadingColumns)
 
     //Check for bad data being passed
     const error = checkUserInputs(arguments);
@@ -125,12 +124,9 @@ export async function createPDFTables(
             const isInitPage = loop === 0 ? true : false;
             const table = new VerticalTable(remainingData, columns, page, isInitPage, options, options);
             const data = table.data;
-            // if(loop === 0) console.log(table.data);
 
             const header = new Header(page, columns, table.columnDimensions, table.width, isInitPage, options, options);
             table.addHeader(header);
-
-            // console.log(subHeading);
 
             //add rows to the table
             data.forEach((row) => {
@@ -145,7 +141,6 @@ export async function createPDFTables(
             remainingData = table.remainingData;
         };
     const t1 = performance.now();
-    console.log(`Call to doSomething took ${t1 - t0} milliseconds.`);
 
     return document;
 };

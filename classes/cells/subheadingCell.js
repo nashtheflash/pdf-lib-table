@@ -51,7 +51,6 @@ export class SubheadingCell {
 
     drawCellText(startingY) {
         if(!this._data) return;
-        // console.log(this._columnId, this._data);
 
         this._data.forEach((text, i) => {
             this._page.page.drawText(text, {
