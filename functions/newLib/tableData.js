@@ -1,5 +1,5 @@
 import { getWrapedText } from "./lib";
-import { getParentColumnId, getChildColumnId } from "./headerData";
+import { getChildColumnId } from "./headerData";
 
 export function getTableHeight({ rowData, tableData, columnDimensions, finalColumnDimensions, prevWrapedData, columns, options }) {
     //if the data is unchanged. dont run calcRowHeights
@@ -43,13 +43,7 @@ export function getRowHeightAndWrapText(row, columnWidths, columns, options) {
             if(wrappedText.length > tallestCell) tallestCell = wrappedText.length;
         };
 
-        // if(row.type === 'subheading' && subHeadingWrapText) {
-        if(row.type === 'subheading') {
-            // const subheadingDef = subheadingColumns.find(({columnId: column}) => columnId === column);
-            // const subheadingDef = getParentColumnId(columnId, subheadingColumns)
-            // const parentColumnId = getParentColumnId(columnId, subheadingColumns)
-            // const parentColumnId = subheadingDef.parentId;
-            // const subHeadingColumnId = subheadingDef.columnId;
+        if(row.type === 'subheading' && subHeadingWrapText) {
             const subHeadingColumnId = getChildColumnId(columnId, subHeadingColumns);
             if(!subHeadingColumnId) return;
 
