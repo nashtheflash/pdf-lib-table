@@ -1,4 +1,4 @@
-import { wrapHeader } from "../../lib/headerData";
+import { wrapHeader } from "../../lib/headerDimensions";
 import { getTextWidth } from "../../lib";
 
 export class Header {

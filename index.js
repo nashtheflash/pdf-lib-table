@@ -134,13 +134,13 @@ export async function createPDFTables(
                 if(row.type === 'subheading') table.addRow(new SubHeading(page, row.data, row.rowHeight, options.subHeadingColumns, table.width, table.columnDimensions, options, options));
             });
 
-
             //add table to the document
             document.addTable(table);
 
             remainingData = table.remainingData;
         };
     const t1 = performance.now();
+    console.log(`table generation took ${t1 - t0} milliseconds.`);
 
     return document;
 };

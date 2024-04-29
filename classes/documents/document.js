@@ -28,7 +28,7 @@ export class Document {
         this._continuationTextX = continuationTextX,
         this._continuationFont = continuationFont,
         this._continuationFontSize = continuationFontSize,
-        this._continuationsFillerHeight - continuationFillerHeight,
+        this._continuationsFillerHeight = continuationFillerHeight,
         this._continuationText = continuationText,
         this._pages = [new Page(initialPage)],
         this._tables = []
@@ -64,12 +64,11 @@ export class Document {
     }
 
     drawContinuationFooter(page) {
-
-    page.page.drawText(this._continuationText, {
-        x: this._continuationTextX ? this._continuationTextX : ((page.width - getTextWidth(this._continuationFont, this._continuationFontSize, this._continuationText) ) / 2),
-        y: this._continuationTextY,
-        font: this._continuationFont,
-        size: this._continuationFontSize,
-    });
+        page.page.drawText(this._continuationText, {
+            x: this._continuationTextX ? this._continuationTextX : ((page.width - getTextWidth(this._continuationFont, this._continuationFontSize, this._continuationText) ) / 2),
+            y: this._continuationTextY,
+            font: this._continuationFont,
+            size: this._continuationFontSize,
+        });
     }
 }
