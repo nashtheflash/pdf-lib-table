@@ -4,7 +4,6 @@ export {Page} from './documents/page';
 
 //TABLES
 export {VerticalTable} from './tables/vertical-table';
-export {HorizontalTable} from './tables/horizontal-table';
 
 //HEADERS
 export {Header} from './headers/header';

@@ -3,7 +3,6 @@ import { checkUserInputs } from './lib'
 import {
     Document,
     VerticalTable,
-    HorizontalTable,
     Header,
     Row,
     SubHeading,
@@ -124,7 +123,7 @@ export async function createPDFTables(
             // drawRuler(page.page, 'y', 25, rgb(.21, .24, .85));
 
             const isInitPage = loop === 0 ? true : false;
-            const table = options.tableType === 'vertical' ? new VerticalTable(remainingData, columns, page, isInitPage, options, options) : new HorizontalTable(remainingData, columns, page, isInitPage, options, options); 
+            const table = new VerticalTable(remainingData, columns, page, isInitPage, options, options);
             const data = table.data;
 
             const header = new Header(page, columns, table.columnDimensions, table.width, isInitPage, options, options);
